@@ -3,6 +3,7 @@ package de.koshu.flexbot.ui.activities;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,8 +14,11 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -152,6 +156,8 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     @Override
     public void onResume(){
         super.onResume();
+
+        testPermission();
 
         if(!isServiceRunning()) {
             Intent intent = new Intent(OverviewActivity.this, ShiftService.class);
@@ -356,6 +362,23 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
                 }
             }
         }
+    }
+
+    public void testPermission(){
+        final boolean locationPerm = hasPermission("android.permission.ACCESS_FINE_LOCATION");
+        final Activity parAct = this;
+
+        if(!locationPerm) {
+            String[] perms = new String[]{"android.permission.ACCESS_FINE_LOCATION"};
+            ActivityCompat.requestPermissions(parAct, perms, 3);
+
+            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        }
+    }
+
+    public boolean hasPermission(String permission){
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
     }
 }
 
