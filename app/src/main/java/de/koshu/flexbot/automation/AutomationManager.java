@@ -14,6 +14,7 @@ import de.koshu.flexbot.data.Event;
 import de.koshu.flexbot.data.Shift;
 import de.koshu.flexbot.data.WorkTag;
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -34,6 +35,12 @@ public class AutomationManager {
 
         workTags = realm.where(WorkTag.class).findAll();
 
+        workTags.addChangeListener(new RealmChangeListener<RealmResults<WorkTag>>() {
+            @Override
+            public void onChange(RealmResults<WorkTag> workTags) {
+                updateAndStartGeofence();
+            }
+        });
 
         updateAndStartGeofence();
         wifiHelper.start();
@@ -41,7 +48,7 @@ public class AutomationManager {
 
     }
 
-    private void updateAndStartGeofence(){
+    public void updateAndStartGeofence(){
         geoHelper.clearGeofences();
 
         for(WorkTag tag : workTags) {
