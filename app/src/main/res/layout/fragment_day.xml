@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/txt_dayOfTheWeek"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Monday"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toEndOf="@+id/img_dayIcon"
+                app:layout_constraintTop_toTopOf="@+id/img_dayIcon" />
+
+            <TextView
+                android:id="@+id/txt_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="01.01.2019"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="@+id/img_dayIcon"
+                app:layout_constraintStart_toStartOf="@+id/txt_dayOfTheWeek" />
+
+            <ImageView
+                android:id="@+id/img_dayIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="54dp"
+                android:background="@color/colorPrimary"
+                android:tint="@color/colorIcons"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/test_tube" />
+
+            <ProgressBar
+                android:id="@+id/prog_required"
+                style="@style/CustomProgressBarHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+
+                android:max="720"
+                android:progress="478"
+                android:progressBackgroundTint="?attr/colorBackgroundFloating"
+                android:progressTint="@color/colorLighterGrey"
+                android:secondaryProgress="482"
+                android:secondaryProgressTint="@color/colorPrimary"
+                app:layout_constraintBottom_toBottomOf="@+id/prog_work"
+                app:layout_constraintTop_toTopOf="@+id/prog_work"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <ProgressBar
+                android:id="@+id/prog_work"
+                style="@style/CustomProgressBarHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="6dp"
+                android:max="720"
+                android:progress="160"
+                android:progressBackgroundTint="@android:color/transparent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/txt_hoursWorked"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="8,5 h"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/img_dayIcon" />
+
+            <TextView
+                android:id="@+id/txt_overtime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+5 h"
+                android:textColor="@android:color/holo_green_dark"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@+id/txt_hoursWorked"
+                app:layout_constraintTop_toBottomOf="@+id/txt_hoursWorked" />
+
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tint="@android:color/primary_text_light"
+                app:layout_constraintBottom_toBottomOf="@+id/img_dayIcon"
+                app:layout_constraintEnd_toEndOf="@+id/img_dayIcon"
+                app:srcCompat="@drawable/pencil" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/divider3"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorDivider" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recy_eventlist"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            tools:listitem="@layout/item_shift" />
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:tint="@color/colorIcons"
+        app:srcCompat="@drawable/plus" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

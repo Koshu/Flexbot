@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/txt_month"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="April"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/divider"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/txt_monthOvertime"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="+2.5"
+            android:textAlignment="textEnd"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@+id/divider"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/colorDivider"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/img_dayIcon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:background="@color/colorPrimaryDark"
+            android:padding="4dp"
+            android:tint="?attr/colorBackgroundFloating"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/beach" />
+
+        <ProgressBar
+            android:id="@+id/prog_required"
+            style="@style/CustomProgressBarHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            android:layout_marginEnd="4dp"
+            android:max="720"
+            android:progress="478"
+            android:progressBackgroundTint="?attr/colorBackgroundFloating"
+            android:progressTint="@color/colorLighterGrey"
+            android:scrollbarStyle="insideOverlay"
+            android:secondaryProgress="482"
+            android:secondaryProgressTint="@color/colorPrimary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/txt_overtime"
+            app:layout_constraintStart_toEndOf="@+id/txt_Date"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ProgressBar
+            android:id="@+id/prog_work"
+            style="@style/CustomProgressBarHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_marginEnd="4dp"
+            android:max="720"
+            android:progress="160"
+            android:progressBackgroundTint="@android:color/transparent"
+            android:progressTint="@color/colorGreen"
+            android:scrollbarStyle="insideOverlay"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/txt_overtime"
+            app:layout_constraintStart_toEndOf="@+id/txt_Date"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txt_Date"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:text="31.04"
+            android:textAlignment="center"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/img_dayIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txt_dayOfTheWeek"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Do"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/txt_Date"
+            app:layout_constraintStart_toEndOf="@+id/img_dayIcon" />
+
+        <TextView
+            android:id="@+id/txt_overtime"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="+2.5"
+            android:textAlignment="textEnd"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Space
+        android:id="@+id/space_bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="16dp" />
+</LinearLayout>

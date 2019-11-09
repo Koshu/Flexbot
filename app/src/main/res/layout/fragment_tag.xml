@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp" >
+
+            <EditText
+                android:id="@+id/txt_tagName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="Name" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Modus"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/radGrp_mode"
+                android:weightSum="3">
+
+                <RadioButton
+                    android:id="@+id/rad_manual"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Manual"
+                    android:textAlignment="gravity" />
+
+                <RadioButton
+                    android:id="@+id/rad_semiauto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Semiauto" />
+
+                <RadioButton
+                    android:id="@+id/rad_auto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Auto" />
+            </RadioGroup>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Automatische Pause"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:text="Aktiviert"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <Switch
+                        android:id="@+id/swt_autoPause"
+                        android:layout_width="wrap_content"
+                        android:layout_height="45dp" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:text="Dauer"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/txt_autoPauseDuration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:gravity="right"
+                        android:inputType="number"
+                        android:text="30 min" />
+
+                </TableRow>
+            </TableLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Geo-Fancing"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:text="Breitengrad"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/txt_geoLatitude"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:gravity="right"
+                        android:inputType="numberDecimal"
+                        android:text="0" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:text="Längengrad"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/txt_geoLongitude"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:gravity="right"
+                        android:inputType="numberDecimal"
+                        android:text="0.0" />
+
+                </TableRow>
+            </TableLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wifis"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recy_wifis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="5"
+                tools:listitem="@layout/item_select" />
+        </LinearLayout>
+</androidx.core.widget.NestedScrollView>
