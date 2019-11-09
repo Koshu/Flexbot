@@ -176,7 +176,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     private boolean isServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("de.koshu.postracker.service.ShiftService".equals(service.service.getClassName())) {
+            if("de.koshu.flexbot.service.ShiftService".equals(service.service.getClassName())) {
                 return true;
             }
         }
