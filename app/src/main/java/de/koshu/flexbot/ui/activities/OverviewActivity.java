@@ -38,6 +38,7 @@ import java.util.Calendar;
 
 import de.koshu.flexbot.Helper;
 import de.koshu.flexbot.R;
+import de.koshu.flexbot.automation.MaintenanceWorker;
 import de.koshu.flexbot.data.AppState;
 import de.koshu.flexbot.data.DataManager;
 import de.koshu.flexbot.data.Day;
@@ -171,6 +172,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         }
 
         updateDayGui();
+        MaintenanceWorker.activateLogWorker();
     }
 
     private boolean isServiceRunning() {
@@ -286,6 +288,16 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     }
 
     private void exportAndSendAsJSON(){
+        /*Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        //intent.putExtra(Intent.EXTRA_TITLE, "test.csv");
+        //intent.setType("text/csv");
+        //intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        startActivityForResult(intent , 42);*/
+
+
         Calendar c = Calendar.getInstance();
         String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(c.getTime());
 
@@ -305,7 +317,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
             return;
         }
 
-        Uri uri = FileProvider.getUriForFile(this,"de.koshu.postracker.fileprovider", file);
+        Uri uri = FileProvider.getUriForFile(this,"de.koshu.flexbot.fileprovider", file);
 
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
