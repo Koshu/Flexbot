@@ -148,10 +148,10 @@ public class AutomationManager {
 
 
     private void detectEndOfShift(Event event){
-        if(event.equals("GEO","OUTSIDE","flexbot.Arbeit")){
+        if(event.source.equals("GEO") && event.type.equals("OUTSIDE")){
             Event lastWifiEvent = getLastEvent("WIFI", 25);
 
-            if(lastWifiEvent == null){
+            if(lastWifiEvent == null || !lastWifiEvent.type.equals("DISCONNECTED") || !lastWifiEvent.tag.equals(event.tag)){
                 dataManager.endShift(null, Shift.CONFIDENCE_AUTO_NOTOK);
             } else {
                 Instant instant = Instant.ofEpochSecond(lastWifiEvent.date.getTime()/1000);
