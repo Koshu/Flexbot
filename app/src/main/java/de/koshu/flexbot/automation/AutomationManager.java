@@ -28,9 +28,10 @@ public class AutomationManager {
     public GeofenceHelper geoHelper = new GeofenceHelper(this);
     public WifiHelper wifiHelper = new WifiHelper(this);
 
-    private AutomationManager(Context context, DataManager dataManager){
+    private AutomationManager(Context context){
         this.context = context;
-        this.dataManager = dataManager;
+        this.dataManager = DataManager.getManager();
+
         this.realm = dataManager.getRealm();
 
         workTags = realm.where(WorkTag.class).findAll();
@@ -60,9 +61,9 @@ public class AutomationManager {
         geoHelper.start();
     }
 
-    public static AutomationManager getManager(Context context, DataManager dataManager){
+    public static AutomationManager getManager(Context context){
         if(autoManager == null){
-            autoManager = new AutomationManager(context,dataManager);
+            autoManager = new AutomationManager(context);
         }
 
         return autoManager;
@@ -113,10 +114,18 @@ public class AutomationManager {
     public void addEvent(Event event){
         if(!tagEvent(event)){
             event.filtered = true;
-            addEventToRealm(event);
-            return;
+        } else {
+            filterEvents(event);
         }
 
+        addEventToRealm(event);
+
+        if(!event.filtered){
+            detectShiftChange(event);
+        }
+    }
+
+    private boolean filterEvents(Event event){
         switch(event.source){
             case "WIFI":{
                 if(event.type.equals("CONNECTED")) {
@@ -127,25 +136,23 @@ public class AutomationManager {
                         lastEvent.filtered = true;
                         realm.commitTransaction();
                         event.filtered = true;
-                        addEventToRealm(event);
                         break;
                     }
                 }
-
-                addEventToRealm(event);
-
-                detectShiftChange(event);
             }break;
 
             case "GEO":{
-                addEventToRealm(event);
+                Event lastEvent = getLastEvent("GEO",12*60);
 
-                detectShiftChange(event);
+                if(lastEvent != null && lastEvent.tag.equals(event.tag) && lastEvent.type.equals(event.type)){
+                    event.filtered = true;
+                    break;
+                }
             }break;
         }
+
+        return false;
     }
-
-
 
     private void detectEndOfShift(Event event){
         if(event.source.equals("GEO") && event.type.equals("OUTSIDE")){

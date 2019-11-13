@@ -48,9 +48,23 @@ public class EventListFragment extends Fragment {
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        eventListAdapter = new EventListAdapter(getActivity(),realm.where(Event.class).findAll());
+        eventListAdapter = new EventListAdapter(getActivity(),realm.where(Event.class)
+                .equalTo("filtered", false)
+                .findAll());
+
         recyclerView.setAdapter(eventListAdapter);
 
         return view;
+    }
+
+    public void setFiltered(boolean filtered){
+        if(filtered) {
+            eventListAdapter.updateData(realm.where(Event.class)
+                    .equalTo("filtered", false)
+                    .findAll());
+        } else {
+            eventListAdapter.updateData(realm.where(Event.class)
+                    .findAll());
+        }
     }
 }

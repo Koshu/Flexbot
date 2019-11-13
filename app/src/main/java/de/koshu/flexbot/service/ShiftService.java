@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
+import de.koshu.flexbot.automation.AutomationManager;
 import de.koshu.flexbot.data.AppState;
 import de.koshu.flexbot.data.DataManager;
 import de.koshu.flexbot.data.Shift;
@@ -13,10 +14,20 @@ import io.realm.RealmChangeListener;
 public class ShiftService extends ShiftNotificationService {
     private static final String TAG = "ShiftService";
     private DataManager dataManager;
+    private AutomationManager autoManager;
 
     /* Used to build and start foreground service. */
     protected void startForegroundService() {
         super.startForegroundService();
+
+        dataManager = DataManager.getManager(this);
+        dataManager.getAppState().addChangeListener(new RealmChangeListener<AppState>() {
+            @Override
+            public void onChange(AppState appState) {
+                updateNotification(appState.runningShift);
+            }
+        });
+        autoManager = AutomationManager.getManager(this);
     }
 
     protected void stopForegroundService() {
@@ -28,16 +39,6 @@ public class ShiftService extends ShiftNotificationService {
 
         // Stop the foreground service.
         stopSelf();
-    }
-
-    public ShiftService() {
-        dataManager = DataManager.getManager(this);
-        dataManager.getAppState().addChangeListener(new RealmChangeListener<AppState>() {
-            @Override
-            public void onChange(AppState appState) {
-                updateNotification(appState.runningShift);
-            }
-        });
     }
 
     @Override

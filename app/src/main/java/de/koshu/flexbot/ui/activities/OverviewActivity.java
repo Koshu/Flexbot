@@ -72,7 +72,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_overview);
 
-        dataManager = DataManager.getManager(this);
+        dataManager = DataManager.getManager(getApplicationContext());
         realm = dataManager.getRealm();
 
         final Toolbar toolbar = findViewById(R.id.toolbar);

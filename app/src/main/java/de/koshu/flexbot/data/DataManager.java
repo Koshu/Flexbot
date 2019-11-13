@@ -32,7 +32,6 @@ public class DataManager {
     private Context context;
     private AppState state = null;
     private AppSettings settings = null;
-    private AutomationManager autoManager;
 
     private DataManager(Context context){
         this.context = context;
@@ -59,8 +58,6 @@ public class DataManager {
             settings = realm.createObject(AppSettings.class);
             realm.commitTransaction();
         }
-
-        autoManager = AutomationManager.getManager(context,this);
     }
 
     public static DataManager getManager(Context context){
