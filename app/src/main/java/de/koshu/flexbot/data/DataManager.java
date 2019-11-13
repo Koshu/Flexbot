@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
+import de.koshu.flexbot.Flexbot;
 import de.koshu.flexbot.automation.AutomationManager;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -33,8 +34,8 @@ public class DataManager {
     private AppState state = null;
     private AppSettings settings = null;
 
-    private DataManager(Context context){
-        this.context = context;
+    private DataManager(){
+        this.context = Flexbot.get();
 
         Realm.init(context);
         RealmConfiguration config = new RealmConfiguration.Builder()
@@ -60,16 +61,16 @@ public class DataManager {
         }
     }
 
-    public static DataManager getManager(Context context){
+    public static DataManager getManager(){
         if(dataManager == null){
-            dataManager = new DataManager(context);
+            dataManager = new DataManager();
         }
 
         return dataManager;
     }
 
-    public static DataManager getManager(){
-        return dataManager;
+    public static DataManager getNotSingletonManager(){
+        return new DataManager();
     }
 
     public Realm getRealm(){

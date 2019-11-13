@@ -38,6 +38,7 @@ import java.util.Calendar;
 
 import de.koshu.flexbot.Helper;
 import de.koshu.flexbot.R;
+import de.koshu.flexbot.automation.AutomationManager;
 import de.koshu.flexbot.automation.MaintenanceWorker;
 import de.koshu.flexbot.data.AppState;
 import de.koshu.flexbot.data.DataManager;
@@ -52,6 +53,7 @@ import io.realm.RealmChangeListener;
 public class OverviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private Realm realm;
     private DataManager dataManager;
+    private AutomationManager autoManager;
 
     private AppState appState;
 
@@ -72,7 +74,9 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_overview);
 
-        dataManager = DataManager.getManager(getApplicationContext());
+        dataManager = DataManager.getManager();
+        autoManager = AutomationManager.getManager();
+
         realm = dataManager.getRealm();
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
@@ -172,7 +176,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
         }
 
         updateDayGui();
-        MaintenanceWorker.activateLogWorker();
+        //MaintenanceWorker.activateLogWorker();
     }
 
     private boolean isServiceRunning() {

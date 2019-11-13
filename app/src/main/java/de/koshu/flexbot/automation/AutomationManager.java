@@ -9,6 +9,7 @@ import org.threeten.bp.ZoneId;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import de.koshu.flexbot.Flexbot;
 import de.koshu.flexbot.data.DataManager;
 import de.koshu.flexbot.data.Event;
 import de.koshu.flexbot.data.Shift;
@@ -28,8 +29,9 @@ public class AutomationManager {
     public GeofenceHelper geoHelper = new GeofenceHelper(this);
     public WifiHelper wifiHelper = new WifiHelper(this);
 
-    private AutomationManager(Context context){
-        this.context = context;
+    private AutomationManager(){
+        this.context = Flexbot.get();
+
         this.dataManager = DataManager.getManager();
 
         this.realm = dataManager.getRealm();
@@ -61,15 +63,9 @@ public class AutomationManager {
         geoHelper.start();
     }
 
-    public static AutomationManager getManager(Context context){
-        if(autoManager == null){
-            autoManager = new AutomationManager(context);
-        }
-
-        return autoManager;
-    }
-
     public static AutomationManager getManager(){
+        if(autoManager == null) autoManager = new AutomationManager();
+
         return autoManager;
     }
 

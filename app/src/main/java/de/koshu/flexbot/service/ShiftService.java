@@ -20,14 +20,14 @@ public class ShiftService extends ShiftNotificationService {
     protected void startForegroundService() {
         super.startForegroundService();
 
-        dataManager = DataManager.getManager(this);
+        dataManager = DataManager.getManager();
         dataManager.getAppState().addChangeListener(new RealmChangeListener<AppState>() {
             @Override
             public void onChange(AppState appState) {
                 updateNotification(appState.runningShift);
             }
         });
-        autoManager = AutomationManager.getManager(this);
+        autoManager = AutomationManager.getManager();
     }
 
     protected void stopForegroundService() {

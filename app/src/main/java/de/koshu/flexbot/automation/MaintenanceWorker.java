@@ -48,7 +48,7 @@ public class MaintenanceWorker extends Worker {
     }
 
     private void createBackup(){
-        DataManager dataManager = DataManager.getManager();
+        DataManager dataManager = DataManager.getNotSingletonManager();
 
         Calendar c = Calendar.getInstance();
         String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(c.getTime());
