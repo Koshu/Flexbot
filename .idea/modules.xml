@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/flexbot.iml" filepath="$PROJECT_DIR$/flexbot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flextime.iml" filepath="$PROJECT_DIR$/flextime.iml" />
     </modules>
   </component>
 </project>

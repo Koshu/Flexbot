@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.koshu.flexbot">
+    package="de.koshu.flextime">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:name="de.koshu.flexbot.Flexbot"
+        android:name="de.koshu.flextime.Flextime"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -20,23 +20,23 @@
         android:theme="@style/AppTheme">
 
         <service
-            android:name="de.koshu.flexbot.service.ShiftService"
+            android:name="de.koshu.flextime.service.ShiftService"
             android:enabled="true"
             android:exported="true" />
 
         <receiver
-            android:name="de.koshu.flexbot.automation.GeofenceHelper$GeofenceBroadcastReceiver"
+            android:name="de.koshu.flextime.automation.GeofenceHelper$GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="true" />
 
         <receiver
-            android:name="de.koshu.flexbot.automation.WifiHelper"
+            android:name="de.koshu.flextime.automation.WifiHelper"
             android:enabled="true"
             android:exported="true" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="de.koshu.flexbot.fileprovider"
+            android:authorities="de.koshu.flextime.fileprovider"
             android:grantUriPermissions="true"
             android:exported="false">
             <meta-data
@@ -45,7 +45,7 @@
         </provider>
 
         <activity
-            android:name="de.koshu.flexbot.ui.activities.OverviewActivity"
+            android:name="de.koshu.flextime.ui.activities.OverviewActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,35 +55,35 @@
         </activity>
 
         <activity
-            android:name="de.koshu.flexbot.ui.activities.DayActivity"
-            android:parentActivityName="de.koshu.flexbot.ui.activities.OverviewActivity">
+            android:name="de.koshu.flextime.ui.activities.DayActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flexbot.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
         </activity>
 
         <activity
-            android:name="de.koshu.flexbot.ui.activities.EventActivity"
-            android:parentActivityName="de.koshu.flexbot.ui.activities.OverviewActivity">
+            android:name="de.koshu.flextime.ui.activities.EventActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flexbot.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
         </activity>
         <activity
-            android:name="de.koshu.flexbot.ui.activities.SettingsActivity"
-            android:parentActivityName="de.koshu.flexbot.ui.activities.OverviewActivity">
+            android:name="de.koshu.flextime.ui.activities.SettingsActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flexbot.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
         </activity>
         <activity
-            android:name="de.koshu.flexbot.ui.activities.TagListActivity"
-            android:parentActivityName="de.koshu.flexbot.ui.activities.OverviewActivity">
+            android:name="de.koshu.flextime.ui.activities.TagListActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flexbot.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
         </activity>
         <activity
-            android:name="de.koshu.flexbot.ui.activities.TagActivity"
-            android:parentActivityName="de.koshu.flexbot.ui.activities.TagListActivity">
+            android:name="de.koshu.flextime.ui.activities.TagActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.TagListActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flexbot.ui.activities.TagListActivity" />
+                android:value="de.koshu.flextime.ui.activities.TagListActivity" />
         </activity>
     </application>
 

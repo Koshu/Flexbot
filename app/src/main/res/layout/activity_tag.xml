@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/fragment"
-        android:name="de.koshu.flexbot.ui.fragments.TagFragment"
+        android:name="de.koshu.flextime.ui.fragments.TagFragment"
         android:layout_width="match_parent"
         tools:layout="@layout/fragment_tag"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"

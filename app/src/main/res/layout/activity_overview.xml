@@ -178,7 +178,7 @@
 
     <fragment
         android:id="@+id/fragment"
-        android:name="de.koshu.flexbot.ui.fragments.DayListFragment"
+        android:name="de.koshu.flextime.ui.fragments.DayListFragment"
         android:layout_width="match_parent"
         tools:layout="@layout/fragment_days"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"

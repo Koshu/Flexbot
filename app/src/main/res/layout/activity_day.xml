@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/fragment"
-        android:name="de.koshu.flexbot.ui.fragments.DayFragment"
+        android:name="de.koshu.flextime.ui.fragments.DayFragment"
         android:layout_width="match_parent"
         tools:layout="@layout/fragment_day"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
