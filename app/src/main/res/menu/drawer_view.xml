@@ -19,34 +19,34 @@
     <group>
         <item
             android:id="@+id/nav_tags"
-            android:title="Tags"
+            android:title="@string/drawer_tags"
             android:icon="@drawable/tag"/>
         <item
             android:id="@+id/nav_events"
-            android:title="Events"
+            android:title="@string/drawer_events"
             android:icon="@drawable/calendar_range_outline"/>
         <item
             android:id="@+id/nav_settings"
-            android:title="Settings"
+            android:title="@string/drawer_settings"
             android:icon="@drawable/settings"/>
     </group>
-    <item android:title="Daten">
+    <item android:title="@string/drawer_data">
         <menu>
             <item
                 android:id="@+id/nav_exportJSON"
-                android:title="Backup"
+                android:title="@string/drawer_backup"
                 android:icon="@drawable/export"/>
             <item
                 android:id="@+id/nav_importJSON"
-                android:title="Restore"
+                android:title="@string/drawer_restore"
                 android:icon="@drawable/import2"/>
         </menu>
     </item>
-    <item android:title="Other">
+    <item android:title="@string/drawer_other">
         <menu>
             <item
                 android:id="@+id/nav_logfile"
-                android:title="Log"
+                android:title="@string/drawer_log"
                 android:icon="@drawable/export"/>
         </menu>
     </item>

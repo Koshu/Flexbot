@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -16,10 +17,11 @@
         android:layout_gravity="center"
         android:layout_marginEnd="16dp"
         android:scaleType="fitCenter"
-        app:srcCompat="@drawable/location_enter" />
+        app:srcCompat="@drawable/location_enter"
+        tools:ignore="ContentDescription" />
 
     <TableLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:weightSum="5">
@@ -34,7 +36,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:text="WIFI"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/txt_type"
@@ -42,7 +45,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:text="CONNECTED"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/txt_tag"
@@ -50,7 +54,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:text="HOMEOFFICE"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
         </TableRow>
 
         <TableRow
@@ -63,7 +68,8 @@
                 android:layout_height="wrap_content"
                 android:layout_span="2"
                 android:layout_weight="5"
-                android:text="Somw wifi ssid" />
+                android:text="Somw wifi ssid"
+                tools:ignore="HardcodedText" />
 
         </TableRow>
 
@@ -77,7 +83,8 @@
                 android:layout_height="wrap_content"
                 android:layout_span="2"
                 android:layout_weight="5"
-                android:text="Date" />
+                android:text="Date"
+                tools:ignore="HardcodedText" />
 
         </TableRow>
 

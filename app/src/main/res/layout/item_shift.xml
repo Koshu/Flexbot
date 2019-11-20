@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -10,7 +11,7 @@
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="5"
         android:background="@color/colorIcons"
         android:backgroundTint="@color/colorIcons"
@@ -32,7 +33,8 @@
                 android:paddingBottom="8dp"
                 android:text="Normal Shift"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <ImageButton
                 android:id="@+id/btn_delete"
@@ -56,28 +58,28 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="4dp"
-                android:text="Start" />
+                android:text="@string/shift_start" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="4dp"
-                android:text="End" />
+                android:text="@string/shift_end" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="4dp"
-                android:text="Pause" />
+                android:text="@string/shift_pause" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="4dp"
-                android:text="Duration" />
+                android:text="@string/shift_duration" />
 
         </TableRow>
 
@@ -94,7 +96,8 @@
                 android:inputType="time"
                 android:text="00:00"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <EditText
                 android:id="@+id/txt_endTime"
@@ -105,7 +108,8 @@
                 android:inputType="time"
                 android:text="00:00"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <EditText
                 android:id="@+id/txt_pauseDuration"
@@ -116,7 +120,9 @@
                 android:inputType="number"
                 android:text="30 min"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText"
+                android:importantForAutofill="no" />
 
             <TextView
                 android:id="@+id/txt_shiftDuration"
@@ -126,7 +132,8 @@
                 android:paddingStart="4dp"
                 android:text="8 h"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
         </TableRow>
 

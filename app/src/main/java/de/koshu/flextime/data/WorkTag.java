@@ -12,8 +12,14 @@ public class WorkTag extends RealmObject {
     public final static int MODE_SEMIAUTO = 1;
     public final static int MODE_AUTO = 2;
 
+    public final static int TRACKMODE_HYBRID = 0;
+    public final static int TRACKMODE_WIFI = 1;
+    public final static int TRACKMODE_GEO = 2;
+
+
     public String name = "New Tag";
     public int mode = MODE_MANUAL;
+    public int trackMode = 0;
 
     public RealmList<String> associatedWIFIs = new RealmList<>();
 
@@ -46,6 +52,8 @@ public class WorkTag extends RealmObject {
 
         return null;
     }
+
+    //TODO Add trackmode to json
 
     public JSONObject toJSON(){
         JSONObject json = new JSONObject();

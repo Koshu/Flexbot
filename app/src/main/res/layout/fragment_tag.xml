@@ -16,7 +16,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="textPersonName"
-                android:text="Name" />
+                android:hint="@string/tag_name" />
 
             <View
                 android:layout_width="match_parent"
@@ -30,7 +30,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Modus"
+                android:text="@string/tag_mode"
                 android:textSize="18sp" />
 
             <View
@@ -50,7 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Manual"
+                    android:text="@string/tag_mode_manual"
                     android:textAlignment="gravity" />
 
                 <RadioButton
@@ -58,14 +58,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Semiauto" />
+                    android:text="@string/tag_mode_semiauto" />
 
                 <RadioButton
                     android:id="@+id/rad_auto"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Auto" />
+                    android:text="@string/tag_mode_auto" />
             </RadioGroup>
 
             <Space
@@ -75,7 +75,52 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Automatische Pause"
+                android:text="@string/track_mode"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/radGrp_trackmode"
+                android:weightSum="3">
+
+                <RadioButton
+                    android:id="@+id/rad_trackhybrid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/tag_trackmode_manual"
+                    android:textAlignment="gravity" />
+
+                <RadioButton
+                    android:id="@+id/rad_trackwifi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/tag_trackmode_semiauto" />
+
+                <RadioButton
+                    android:id="@+id/rad_trackgeo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/tag_trackmode_auto" />
+            </RadioGroup>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tag_auto_pause"
                 android:textSize="18sp" />
 
             <View
@@ -96,7 +141,7 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:layout_column="0"
-                        android:text="Aktiviert"
+                        android:text="@string/tag_activated"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -115,7 +160,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_column="0"
-                        android:text="Dauer"
+                        android:text="@string/tag_duration"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -126,7 +171,7 @@
                         android:layout_column="1"
                         android:gravity="right"
                         android:inputType="number"
-                        android:text="30 min" />
+                        tools:text="30 min" />
 
                 </TableRow>
             </TableLayout>
@@ -138,7 +183,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Geo-Fancing"
+                android:text="@string/tag_geofencing"
                 android:textSize="18sp" />
 
             <View
@@ -159,7 +204,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_column="0"
-                        android:text="Breitengrad"
+                        android:text="@string/tag_latitude"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -170,7 +215,7 @@
                         android:layout_column="1"
                         android:gravity="right"
                         android:inputType="numberDecimal"
-                        android:text="0" />
+                        tools:text="0" />
 
                 </TableRow>
 
@@ -182,7 +227,7 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:layout_column="0"
-                        android:text="Längengrad"
+                        android:text="@string/tag_longitude"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -193,7 +238,7 @@
                         android:layout_column="1"
                         android:gravity="right"
                         android:inputType="numberDecimal"
-                        android:text="0.0" />
+                        tools:text="0.0" />
 
                 </TableRow>
             </TableLayout>
@@ -205,7 +250,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Wifis"
+                android:text="@string/tag_wifis"
                 android:textSize="18sp" />
 
             <View

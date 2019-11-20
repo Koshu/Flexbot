@@ -35,8 +35,7 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
     private WorkTag tag;
 
     private EditText txtTagName, txtAutoPauseDuration, txtGeoLong, txtGeoLat;
-    private RadioGroup radGrpMode;
-    private RadioButton radManual, radSemiAuto, radAuto;
+    private RadioGroup radGrpMode, radGrpTrack;
     private Switch swtAutoPause;
     private RecyclerView recyWifis;
 
@@ -61,9 +60,7 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
 
         txtTagName = view.findViewById(R.id.txt_tagName);
         radGrpMode = view.findViewById(R.id.radGrp_mode);
-        radManual = view.findViewById(R.id.rad_manual);
-        radSemiAuto = view.findViewById(R.id.rad_semiauto);
-        radAuto = view.findViewById(R.id.rad_auto);
+        radGrpTrack = view.findViewById(R.id.radGrp_trackmode);
         swtAutoPause = view.findViewById(R.id.swt_autoPause);
         txtAutoPauseDuration = view.findViewById(R.id.txt_autoPauseDuration);
         txtGeoLong = view.findViewById(R.id.txt_geoLongitude);
@@ -82,6 +79,22 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
                         tag.mode = WorkTag.MODE_SEMIAUTO; break;
                     case R.id.rad_auto:
                         tag.mode = WorkTag.MODE_AUTO; break;
+                }
+                realm.commitTransaction();
+            }
+        });
+
+        radGrpMode.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                realm.beginTransaction();
+                switch(checkedId){
+                    case R.id.rad_trackhybrid:
+                        tag.trackMode = WorkTag.TRACKMODE_HYBRID; break;
+                    case R.id.rad_trackwifi:
+                        tag.trackMode = WorkTag.TRACKMODE_WIFI; break;
+                    case R.id.rad_trackgeo:
+                        tag.trackMode = WorkTag.TRACKMODE_GEO; break;
                 }
                 realm.commitTransaction();
             }
@@ -154,6 +167,15 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
                 tag.mode = WorkTag.MODE_AUTO; break;
         }
 
+        switch(radGrpMode.getCheckedRadioButtonId()){
+            case R.id.rad_trackhybrid:
+                tag.trackMode = WorkTag.TRACKMODE_HYBRID; break;
+            case R.id.rad_trackwifi:
+                tag.trackMode = WorkTag.TRACKMODE_WIFI; break;
+            case R.id.rad_trackgeo:
+                tag.trackMode = WorkTag.TRACKMODE_GEO; break;
+        }
+
         List<String> wifis = itemSelectAdapter.getCheckedItems();
         tag.associatedWIFIs.clear();
         for(String wifi : wifis){
@@ -179,6 +201,15 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
             case WorkTag.MODE_AUTO:
                 radGrpMode.check(R.id.rad_auto);
                 break;
+        }
+
+        switch(radGrpMode.getCheckedRadioButtonId()){
+            case WorkTag.TRACKMODE_HYBRID:
+                radGrpTrack.check(R.id.rad_trackhybrid);break;
+            case WorkTag.TRACKMODE_WIFI:
+                radGrpTrack.check(R.id.rad_trackwifi);break;
+            case WorkTag.TRACKMODE_GEO:
+                radGrpTrack.check(R.id.rad_trackgeo);break;
         }
 
         swtAutoPause.setChecked(tag.addAutoPause);

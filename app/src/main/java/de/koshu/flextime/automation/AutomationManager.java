@@ -121,44 +121,82 @@ public class AutomationManager {
         detectEndOfShift(event);
     }
 
-    private void detectStartOfShift(Event event){
+    private void detectStartOfShift(Event event) {
         WorkTag tag = realm.where(WorkTag.class).equalTo("name", event.tag).findFirst();
 
-        if(tag == null || tag.mode != WorkTag.MODE_AUTO) return;
+        if (tag == null || tag.mode != WorkTag.MODE_AUTO) return;
 
-        if(event.source.equals("WIFI") && event.type.equals("CONNECTED")){
-            Event lastGeoEvent = realm.where(Event.class)
-                    .greaterThan("date", new Date(System.currentTimeMillis() - 30 * 60 * 1000))
-                    .equalTo("source", "GEO")
-                    .equalTo("type", "INSIDE")
-                    .equalTo("tag", event.tag)
-                    .sort("date", Sort.DESCENDING)
-                    .findFirst();
+        switch (tag.trackMode) {
+            case WorkTag.TRACKMODE_HYBRID: {
+                if (event.source.equals("WIFI") && event.type.equals("CONNECTED")) {
+                    Event lastGeoEvent = realm.where(Event.class)
+                            .greaterThan("date", new Date(System.currentTimeMillis() - 30 * 60 * 1000))
+                            .equalTo("source", "GEO")
+                            .equalTo("type", "INSIDE")
+                            .equalTo("tag", event.tag)
+                            .sort("date", Sort.DESCENDING)
+                            .findFirst();
 
-            int confidence = lastGeoEvent == null? Shift.CONFIDENCE_AUTO_NOTOK : Shift.CONFIDENCE_AUTO_OK;
+                    int confidence = lastGeoEvent == null ? Shift.CONFIDENCE_AUTO_NOTOK : Shift.CONFIDENCE_AUTO_OK;
 
-            Day toDay = dataManager.getToday();
+                    Day toDay = dataManager.getToday();
 
-            for(Shift shift : toDay.shifts){
-                if(shift.tag != event.tag) break;
-                if(shift.endConfidence == Shift.CONFIDENCE_MANUAL) break;
+                    for (Shift shift : toDay.shifts) {
+                        if (shift.tag != event.tag) break;
+                        if (shift.endConfidence == Shift.CONFIDENCE_MANUAL) break;
 
-                long diff = shift.getEndLocalTime().until(LocalTime.now(), ChronoUnit.SECONDS);
-                if(diff < 90*60){
-                    sendInfoNotification("Schicht " + shift.tag + " fortgeführt");
-                    realm.beginTransaction();
-                    shift.end = -1;
-                    shift.state = Shift.STATE_RUNNING;
-                    shift.pauseDuration += diff;
-                    realm.commitTransaction();
-                    return;
+                        long diff = shift.getEndLocalTime().until(LocalTime.now(), ChronoUnit.SECONDS);
+                        if (diff < 90 * 60) {
+                            sendInfoNotification("Schicht " + shift.tag + " fortgeführt");
+                            realm.beginTransaction();
+                            shift.end = -1;
+                            shift.state = Shift.STATE_RUNNING;
+                            shift.pauseDuration += diff;
+                            realm.commitTransaction();
+                            return;
+                        }
+                    }
+
+                    sendInfoNotification("Schicht " + event.tag + " gestartet");
+                    dataManager.startNewShift(null, event.tag, confidence);
                 }
-            }
+            } break;
+            case WorkTag.TRACKMODE_WIFI: {
+                if (event.source.equals("WIFI") && event.type.equals("CONNECTED")) {
+                    Event lastGeoEvent = realm.where(Event.class)
+                            .greaterThan("date", new Date(System.currentTimeMillis() - 30 * 60 * 1000))
+                            .equalTo("source", "GEO")
+                            .equalTo("type", "INSIDE")
+                            .equalTo("tag", event.tag)
+                            .sort("date", Sort.DESCENDING)
+                            .findFirst();
 
-            sendInfoNotification("Schicht " + event.tag + " gestartet");
-            dataManager.startNewShift(null, event.tag, confidence);
+
+                    Day toDay = dataManager.getToday();
+
+                    for (Shift shift : toDay.shifts) {
+                        if (shift.tag != event.tag) break;
+                        if (shift.endConfidence == Shift.CONFIDENCE_MANUAL) break;
+
+                        long diff = shift.getEndLocalTime().until(LocalTime.now(), ChronoUnit.SECONDS);
+                        if (diff < 90 * 60) {
+                            sendInfoNotification("Schicht " + shift.tag + " fortgeführt");
+                            realm.beginTransaction();
+                            shift.end = -1;
+                            shift.state = Shift.STATE_RUNNING;
+                            shift.pauseDuration += diff;
+                            realm.commitTransaction();
+                            return;
+                        }
+                    }
+
+                    sendInfoNotification("Schicht " + event.tag + " gestartet");
+                    dataManager.startNewShift(null, event.tag, Shift.CONFIDENCE_AUTO_OK);
+                }
+            } break;
         }
     }
+
 
     public void addEvent(Event event){
         if(!tagEvent(event)){
@@ -207,27 +245,51 @@ public class AutomationManager {
         WorkTag tag = realm.where(WorkTag.class).equalTo("name", event.tag).findFirst();
         if(tag == null || tag.mode != WorkTag.MODE_AUTO) return;
 
-        if(event.source.equals("GEO") && event.type.equals("OUTSIDE")){
-            Event lastWifiEvent = getLastEvent("WIFI", 25);
-            Shift shift = dataManager.getRunningShift();
+        switch(tag.trackMode) {
+            case WorkTag.TRACKMODE_HYBRID: {
+                if (event.source.equals("GEO") && event.type.equals("OUTSIDE")) {
+                    Event lastWifiEvent = getLastEvent("WIFI", 25);
+                    Shift shift = dataManager.getRunningShift();
 
-            if(shift == null) return;
+                    if (shift == null) return;
 
-            if(tag.addAutoPause == true && shift.pauseDuration == 0){
-                realm.beginTransaction();
-                shift.pauseDuration += tag.addAutoPauseTime * 60.0f;
-                realm.commitTransaction();
+                    if (tag.addAutoPause == true && shift.pauseDuration == 0) {
+                        realm.beginTransaction();
+                        shift.pauseDuration += tag.addAutoPauseTime * 60.0f;
+                        realm.commitTransaction();
+                    }
+
+                    if (lastWifiEvent == null || !lastWifiEvent.type.equals("DISCONNECTED") || !lastWifiEvent.tag.equals(event.tag)) {
+                        dataManager.endShift(null, Shift.CONFIDENCE_AUTO_NOTOK);
+                    } else {
+                        Instant instant = Instant.ofEpochSecond(lastWifiEvent.date.getTime() / 1000);
+                        LocalTime ld = instant.atZone(ZoneId.systemDefault()).toLocalTime();
+                        dataManager.endShift(ld, Shift.CONFIDENCE_AUTO_OK);
+                    }
+
+                    sendInfoNotification("Schicht " + shift.tag + " beendet");
+                }
             }
+            break;
 
-            if(lastWifiEvent == null || !lastWifiEvent.type.equals("DISCONNECTED") || !lastWifiEvent.tag.equals(event.tag)){
-                dataManager.endShift(null, Shift.CONFIDENCE_AUTO_NOTOK);
-            } else {
-                Instant instant = Instant.ofEpochSecond(lastWifiEvent.date.getTime()/1000);
-                LocalTime ld = instant.atZone(ZoneId.systemDefault()).toLocalTime();
-                dataManager.endShift(ld, Shift.CONFIDENCE_AUTO_OK);
+            case WorkTag.TRACKMODE_WIFI: {
+                if (event.source.equals("WIFI") && event.type.equals("DISCONNECTED")) {
+                    Shift shift = dataManager.getRunningShift();
+
+                    if (shift == null) return;
+
+                    if (tag.addAutoPause == true && shift.pauseDuration == 0) {
+                        realm.beginTransaction();
+                        shift.pauseDuration += tag.addAutoPauseTime * 60.0f;
+                        realm.commitTransaction();
+                    }
+
+                    dataManager.endShift(null, Shift.CONFIDENCE_AUTO_OK);
+
+                    sendInfoNotification("Schicht " + shift.tag + " beendet");
+                }
             }
-
-            sendInfoNotification("Schicht " + shift.tag + " beendet");
+            break;
         }
     }
 

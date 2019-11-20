@@ -22,11 +22,14 @@ import java.util.List;
 import java.util.Objects;
 
 import de.koshu.flextime.Flextime;
+import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
+import io.realm.RealmSchema;
 import io.realm.Sort;
 
 public class DataManager {
@@ -50,7 +53,8 @@ public class DataManager {
 
         Realm.init(context);
         RealmConfiguration config = new RealmConfiguration.Builder()
-                .deleteRealmIfMigrationNeeded()
+                .schemaVersion(1)
+                .migration(new DataMigration())
                 .build();
 
         realm = Realm.getInstance(config);
@@ -449,5 +453,17 @@ public class DataManager {
 
     public interface DataManagerListener{
         void onChange();
+    }
+
+    private class DataMigration implements RealmMigration {
+        @Override
+        public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+            RealmSchema schema = realm.getSchema();
+
+            if(oldVersion == 0){
+                schema.get("WorkTag")
+                        .addField("trackMode",int.class);
+            }
+        }
     }
 }
