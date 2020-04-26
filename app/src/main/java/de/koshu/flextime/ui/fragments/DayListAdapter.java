@@ -15,9 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.threeten.bp.DayOfWeek;
 
-import de.koshu.flextime.Helper;
+import de.koshu.flextime.LocalizationHelper;
 import de.koshu.flextime.R;
-import de.koshu.flextime.data.DataManager;
 import de.koshu.flextime.data.Day;
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
@@ -25,6 +24,8 @@ import io.realm.RealmRecyclerViewAdapter;
 public class DayListAdapter extends RealmRecyclerViewAdapter<Day, DayListAdapter.ViewHolder> {
     private Context context;
     private OnDayListener onDayListener;
+    private boolean showMonths = true;
+    private boolean addWeekDistance = true;
 
     public DayListAdapter(Context context, OnDayListener onDayListener, OrderedRealmCollection<Day> data) {
         super(data, true, true);
@@ -34,11 +35,22 @@ public class DayListAdapter extends RealmRecyclerViewAdapter<Day, DayListAdapter
         this.context = context;
     }
 
+    public DayListAdapter(Context context, OnDayListener onDayListener, OrderedRealmCollection<Day> data, boolean showMonths, boolean addWeekDistance) {
+        super(data, true, true);
+        setHasStableIds(false);
+
+        this.showMonths = showMonths;
+        this.addWeekDistance = addWeekDistance;
+        this.onDayListener = onDayListener;
+        this.context = context;
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent,
                                            int viewType) {
-
         View eventView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_day, parent, false);
+
+        //View eventView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_day, parent, false);
         return new ViewHolder(eventView, onDayListener);
     }
 
@@ -48,27 +60,29 @@ public class DayListAdapter extends RealmRecyclerViewAdapter<Day, DayListAdapter
 
         holder.data = obj;
 
-        if(obj.isLastDayOfMonth()){
+
+        if(showMonths && obj.isLastDayOfMonth()){
             holder.layHeader.setVisibility(View.VISIBLE);
             holder.txtMonth.setText(obj.getMonthString());
 
-            float monthOvertime = DataManager.getManager().getOvertimeOfMonth(obj.month,obj.year);
+            float monthOvertime = obj.getMonthObject().getRestOvertime();
 
-            holder.txtMonthOvertime.setText(Helper.floatToHourString(monthOvertime, true));
+            holder.txtMonthOvertime.setText(LocalizationHelper.floatToHourString(monthOvertime, true));
         } else {
             holder.layHeader.setVisibility(View.GONE);
         }
 
-        if(obj.getDayOfWeek() == DayOfWeek.MONDAY){
+        if(addWeekDistance && obj.getDayOfWeek() == DayOfWeek.MONDAY){
             holder.spaceBottom.setVisibility(View.VISIBLE);
         } else {
             holder.spaceBottom.setVisibility(View.GONE);
         }
 
-        holder.txtDate.setText(obj.date +"."+ (obj.month));
+
+        holder.txtDate.setText(obj.getDateStringShort());
         holder.txtDayOfWeek.setText(obj.getDayOfWeekStringShort());
 
-        int workMin = (int)(obj.getCumulatedNettoDuration()*60);
+        int workMin = (int)(obj.getWorkHours()*60);
         holder.progWork.setProgress(workMin);
 
         int requMin = (int)(obj.getRequiredWork()*60);
@@ -76,7 +90,7 @@ public class DayListAdapter extends RealmRecyclerViewAdapter<Day, DayListAdapter
         holder.progRequi.setSecondaryProgress(requMin+2);
 
         float overtime = obj.getOvertime();
-        holder.txtOvertime.setText(Helper.floatToHourString(overtime, true));
+        holder.txtOvertime.setText(LocalizationHelper.floatToHourString(overtime, true));
 
         holder.icon.setImageResource(obj.getIcon());
         holder.icon.setBackgroundColor(obj.getIconColor(context));
@@ -116,7 +130,7 @@ public class DayListAdapter extends RealmRecyclerViewAdapter<Day, DayListAdapter
 
         @Override
         public void onClick(View v) {
-            onDayListener.onDayClick(data.date, data.month, data.year);
+            onDayListener.onDayClick(data.getDayInt(), data.getMonthInt(), data.getYearInt());
         }
     }
 

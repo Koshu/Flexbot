@@ -167,7 +167,7 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
                 tag.mode = WorkTag.MODE_AUTO; break;
         }
 
-        switch(radGrpMode.getCheckedRadioButtonId()){
+        switch(radGrpTrack.getCheckedRadioButtonId()){
             case R.id.rad_trackhybrid:
                 tag.trackMode = WorkTag.TRACKMODE_HYBRID; break;
             case R.id.rad_trackwifi:
@@ -203,7 +203,7 @@ public class TagFragment extends Fragment implements ItemSelectAdapter.ItemSelec
                 break;
         }
 
-        switch(radGrpMode.getCheckedRadioButtonId()){
+        switch(tag.trackMode){
             case WorkTag.TRACKMODE_HYBRID:
                 radGrpTrack.check(R.id.rad_trackhybrid);break;
             case WorkTag.TRACKMODE_WIFI:

@@ -47,4 +47,10 @@
     <string name="tag_trackmode_semiauto">Wifi</string>
     <string name="tag_trackmode_auto">Geofencing</string>
     <string name="track_mode">Lokalisierungsart</string>
+    <string name="delete_entries">Einträge löschen</string>
+    <string name="restore">Wiederherstellen</string>
+    <string name="delete">Löschen</string>
+    <string name="drawer_month">Monat</string>
+    <string name="drawer_year">Jahr</string>
+    <string name="drawer_overview">Zusammenfassung</string>
 </resources>

@@ -35,8 +35,8 @@ import de.koshu.flextime.R;
 import de.koshu.flextime.data.Day;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmList;
 import io.realm.RealmModel;
+import io.realm.RealmResults;
 
 public class DayFragment extends Fragment implements ShiftListAdapter.OnShiftListener {
     private RecyclerView recyclerView;
@@ -98,18 +98,18 @@ public class DayFragment extends Fragment implements ShiftListAdapter.OnShiftLis
 
         if(bundle != null)
         {
-            date = bundle.getInt("date");
-            month = bundle.getInt("month");
-            year = bundle.getInt("year");
+            date = bundle.getInt("dayInt");
+            month = bundle.getInt("monthInt");
+            year = bundle.getInt("yearInt");
 
             day = DataManager.getManager().getDay(LocalDate.of(year,month,date));
         } else {
             day = DataManager.getManager().getToday();
         }
 
-        day.shifts.addChangeListener(new RealmChangeListener<RealmList<Shift>>() {
+        day.getShifts().addChangeListener(new RealmChangeListener<RealmResults<Shift>>() {
             @Override
-            public void onChange(RealmList<Shift> shifts) {
+            public void onChange(RealmResults<Shift> shifts) {
                 updateDayGui();
             }
         });
@@ -151,7 +151,7 @@ public class DayFragment extends Fragment implements ShiftListAdapter.OnShiftLis
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        shiftListAdapter = new ShiftListAdapter(this,day.shifts);
+        shiftListAdapter = new ShiftListAdapter(this,day.getShifts());
         recyclerView.setAdapter(shiftListAdapter);
 
         updateDayGui();
@@ -161,12 +161,10 @@ public class DayFragment extends Fragment implements ShiftListAdapter.OnShiftLis
         txtDayOfWeek.setText(day.getDayOfWeekString());
         txtDate.setText(day.getDateString());
 
-        float hoursWorked = day.getCumulatedNettoDuration();
-        float overtime = day.getOvertime();
-        float reqWork = day.getRequiredWork();
+        float hoursWorked = day.getWorkHours();
 
-        txtHoursWorked.setText(String.format("%.1fh / %.1fh",hoursWorked,reqWork));
-        txtOvertime.setText(String.format("%.1fh",overtime));
+        txtHoursWorked.setText(day.getCumulatedNettoDurationString() + " / " + day.getRequiredWorkString());
+        txtOvertime.setText(day.getOvertimeString());
         txtOvertime.setTextColor(day.getProgColor(context));
 
         progWork.setProgress((int) (hoursWorked*60));
@@ -242,7 +240,7 @@ public class DayFragment extends Fragment implements ShiftListAdapter.OnShiftLis
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         realm.beginTransaction();
-                        shift.deleteFromRealm();
+                        day.deleteShift(shift);
                         realm.commitTransaction();
                     }
                 })
@@ -256,7 +254,7 @@ public class DayFragment extends Fragment implements ShiftListAdapter.OnShiftLis
                     @Override
                     public void onTagPicked(String tagName) {
                         realm.beginTransaction();
-                        shift.tag = tagName;
+                        shift.setTag(tagName);
                         realm.commitTransaction();
                     }
                 });

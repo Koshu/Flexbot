@@ -141,17 +141,17 @@ public class AutomationManager {
 
                     Day toDay = dataManager.getToday();
 
-                    for (Shift shift : toDay.shifts) {
-                        if (shift.tag != event.tag) break;
-                        if (shift.endConfidence == Shift.CONFIDENCE_MANUAL) break;
+                    for (Shift shift : toDay.getShifts()) {
+                        if (shift.getTag() != event.tag) break;
+                        if (shift.getEndConfidence() == Shift.CONFIDENCE_MANUAL) break;
 
                         long diff = shift.getEndLocalTime().until(LocalTime.now(), ChronoUnit.SECONDS);
                         if (diff < 90 * 60) {
-                            sendInfoNotification("Schicht " + shift.tag + " fortgeführt");
+                            sendInfoNotification("Schicht " + shift.getTag() + " fortgeführt");
                             realm.beginTransaction();
-                            shift.end = -1;
-                            shift.state = Shift.STATE_RUNNING;
-                            shift.pauseDuration += diff;
+                            shift.setEnd(-1);
+                            shift.setState(Shift.STATE_RUNNING);
+                            shift.setPauseDuration(shift.getPauseDuration() + diff);
                             realm.commitTransaction();
                             return;
                         }
@@ -174,17 +174,17 @@ public class AutomationManager {
 
                     Day toDay = dataManager.getToday();
 
-                    for (Shift shift : toDay.shifts) {
-                        if (shift.tag != event.tag) break;
-                        if (shift.endConfidence == Shift.CONFIDENCE_MANUAL) break;
+                    for (Shift shift : toDay.getShifts()) {
+                        if (shift.getTag() != event.tag) break;
+                        if (shift.getEndConfidence() == Shift.CONFIDENCE_MANUAL) break;
 
                         long diff = shift.getEndLocalTime().until(LocalTime.now(), ChronoUnit.SECONDS);
                         if (diff < 90 * 60) {
-                            sendInfoNotification("Schicht " + shift.tag + " fortgeführt");
+                            sendInfoNotification("Schicht " + shift.getTag() + " fortgeführt");
                             realm.beginTransaction();
-                            shift.end = -1;
-                            shift.state = Shift.STATE_RUNNING;
-                            shift.pauseDuration += diff;
+                            shift.setEnd(-1);
+                            shift.setState(Shift.STATE_RUNNING);
+                            shift.setPauseDuration(shift.getPauseDuration() + diff);
                             realm.commitTransaction();
                             return;
                         }
@@ -253,9 +253,9 @@ public class AutomationManager {
 
                     if (shift == null) return;
 
-                    if (tag.addAutoPause == true && shift.pauseDuration == 0) {
+                    if (tag.addAutoPause == true && shift.getPauseDuration() == 0) {
                         realm.beginTransaction();
-                        shift.pauseDuration += tag.addAutoPauseTime * 60.0f;
+                        shift.setPauseDuration(shift.getPauseDuration() + (int)(tag.addAutoPauseTime * 60.0f));
                         realm.commitTransaction();
                     }
 
@@ -267,7 +267,7 @@ public class AutomationManager {
                         dataManager.endShift(ld, Shift.CONFIDENCE_AUTO_OK);
                     }
 
-                    sendInfoNotification("Schicht " + shift.tag + " beendet");
+                    sendInfoNotification("Schicht " + shift.getTag() + " beendet");
                 }
             }
             break;
@@ -278,15 +278,15 @@ public class AutomationManager {
 
                     if (shift == null) return;
 
-                    if (tag.addAutoPause == true && shift.pauseDuration == 0) {
+                    if (tag.addAutoPause == true && shift.getPauseDuration() == 0) {
                         realm.beginTransaction();
-                        shift.pauseDuration += tag.addAutoPauseTime * 60.0f;
+                        shift.setPauseDuration(shift.getPauseDuration() + (int)(tag.addAutoPauseTime * 60.0f));
                         realm.commitTransaction();
                     }
 
                     dataManager.endShift(null, Shift.CONFIDENCE_AUTO_OK);
 
-                    sendInfoNotification("Schicht " + shift.tag + " beendet");
+                    sendInfoNotification("Schicht " + shift.getTag() + " beendet");
                 }
             }
             break;

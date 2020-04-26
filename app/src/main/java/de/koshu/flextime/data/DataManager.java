@@ -1,7 +1,7 @@
 package de.koshu.flextime.data;
 
 import android.content.Context;
-import android.net.Uri;
+import android.os.Handler;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -11,15 +11,8 @@ import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import de.koshu.flextime.Flextime;
 import io.realm.DynamicRealm;
@@ -29,12 +22,12 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
-import io.realm.RealmSchema;
 import io.realm.Sort;
 
 public class DataManager {
     private static DataManager dataManager= null;
 
+    private Handler mHandler;
     private Realm realm;
     private Context context;
     private AppState state = null;
@@ -45,16 +38,24 @@ public class DataManager {
         @Override
         public void onChange(RealmModel realmModel) {
             callCallbacks();
+
+            if(state.runningShift != null){
+                startIntervalUpdater();
+            } else {
+                stopIntervalUpdater();
+            }
         }
     };
 
-    private DataManager(){
+
+    private DataManager(boolean withListener){
         this.context = Flextime.get();
 
         Realm.init(context);
         RealmConfiguration config = new RealmConfiguration.Builder()
-                .schemaVersion(1)
-                .migration(new DataMigration())
+                .schemaVersion(3)
+                .deleteRealmIfMigrationNeeded()
+                //.migration(new DataMigration())
                 .build();
 
         realm = Realm.getInstance(config);
@@ -67,7 +68,10 @@ public class DataManager {
             realm.commitTransaction();
         }
 
-        state.addChangeListener(globalListener);
+        if(withListener) {
+            state.addChangeListener(globalListener);
+            mHandler = new Handler();
+        }
 
         settings = realm.where(AppSettings.class).findFirst();
 
@@ -80,7 +84,7 @@ public class DataManager {
 
     public static DataManager getManager(){
         if(dataManager == null){
-            dataManager = new DataManager();
+            dataManager = new DataManager(true);
         }
 
         return dataManager;
@@ -101,7 +105,7 @@ public class DataManager {
     }
 
     public static DataManager getNotSingletonManager(){
-        return new DataManager();
+        return new DataManager(false);
     }
 
     public Realm getRealm(){
@@ -123,17 +127,76 @@ public class DataManager {
         return getDay(ld);
     }
 
-    public Day getDay(LocalDate lDate) {
-        Day day = realm.where(Day.class)
-                .equalTo("date", lDate.getDayOfMonth())
-                .equalTo("month", lDate.getMonthValue())
-                .equalTo("year", lDate.getYear())
+    public Year getYear(int yearValue){
+        return getYear(yearValue,true);
+    }
+
+    public Year getYear(int yearValue, boolean createIfMissing){
+        Year year = realm.where(Year.class)
+                .equalTo("yearInt", yearValue)
                 .findFirst();
+
+        if(createIfMissing && year == null){
+            realm.beginTransaction();
+            year = new Year(yearValue);
+            year = realm.copyToRealm(year);
+            realm.commitTransaction();
+        }
+
+        return year;
+    }
+
+    public Year getCurrentYear(){
+        LocalDate date = LocalDate.now();
+        return getYear(date.getYear(),true);
+    }
+
+    public RealmResults<Year> getAllYearsOrdered(){
+        String []fieldNames={"yearInt"};
+        Sort sort[]={Sort.ASCENDING};
+        return realm.where(Year.class).sort(fieldNames,sort).findAll();
+    }
+
+    public Month getMonth(int yearValue, int monthValue){
+        Year year = getYear(yearValue);
+
+        if(year == null) return null;
+
+        Month month = year.getMonth(monthValue);
+
+        if(month == null){
+            realm.beginTransaction();
+            month = year.getOrAddMonth(monthValue);
+            realm.commitTransaction();
+        }
+
+        return month;
+    }
+
+    public Month getCurrentMonth(){
+        LocalDate date = LocalDate.now();
+        return getMonth(date.getYear(),date.getMonthValue());
+    }
+
+    public RealmResults<Month> getMonthsOfYear(int yearInt){
+        Year year = getYear(yearInt);
+
+        return year.getMonths();
+    }
+
+    public RealmResults<Month> getAllMonthsOrdered(){
+        String []fieldNames={"yearInt","monthInt"};
+        Sort sort[]={Sort.ASCENDING,Sort.ASCENDING};
+        return realm.where(Month.class).sort(fieldNames,sort).findAll();
+    }
+
+    public Day getDay(LocalDate lDate) {
+        Month month = getMonth(lDate.getYear(), lDate.getMonthValue());
+        Day day = month.getDay(lDate.getDayOfMonth());
 
         if (day == null) {
             realm.beginTransaction();
-            day = realm.createObject(Day.class);
-            day.setDate(lDate);
+            day = month.getOrAddDay(lDate.getDayOfMonth());
             realm.commitTransaction();
 
             Day firstDay = getFirstDay();
@@ -156,38 +219,68 @@ public class DataManager {
         return day;
     }
 
-    public Day getFirstDay(){
-        String []fieldNames={"year","month","date"};
+    public RealmResults<Day> getAllDaysOrdered(){
+        String []fieldNames={"yearInt","monthInt","dayInt"};
         Sort sort[]={Sort.ASCENDING,Sort.ASCENDING,Sort.ASCENDING};
-        Day day = realm.where(Day.class).sort(fieldNames,sort).findFirst();
+        return realm.where(Day.class).sort(fieldNames,sort).findAll();
+    }
+
+    public Month getFirstMonth(){
+        String []fieldNames={"yearInt","monthInt"};
+        Sort sort[]={Sort.ASCENDING,Sort.ASCENDING};
+        Month month = realm.where(Month.class).sort(fieldNames,sort).findFirst();
+
+        return month;
+    }
+
+    public Month getLastMonth(){
+        String []fieldNames={"yearInt","monthInt"};
+        Sort sort[]={Sort.DESCENDING,Sort.DESCENDING};
+        Month month = realm.where(Month.class).sort(fieldNames,sort).findFirst();
+
+        return month;
+    }
+
+    public Day getFirstDay(){
+        Month month = getFirstMonth();
+
+        String []fieldNames={"dayInt"};
+        Sort sort[]={Sort.ASCENDING};
+        Day day = month.getDays().where().sort(fieldNames,sort).findFirst();
 
         return day;
     }
 
     public Day getLastDay(){
-        String []fieldNames={"year","month","date"};
-        Sort sort[]={Sort.DESCENDING,Sort.DESCENDING,Sort.DESCENDING};
-        Day day = realm.where(Day.class).sort(fieldNames,sort).findFirst();
+        Month month = getLastMonth();
+
+        String []fieldNames={"dayInt"};
+        Sort sort[]={Sort.DESCENDING};
+        Day day = month.getDays().where().sort(fieldNames,sort).findFirst();
 
         return day;
     }
 
     public RealmResults<Day> getAllDaysSorted(){
-        String []fieldNames={"year","month","date"};
+        String []fieldNames={"yearInt","monthInt","dayInt"};
         Sort sort[]={Sort.DESCENDING,Sort.DESCENDING,Sort.DESCENDING};
         RealmResults<Day> days = realm.where(Day.class).sort(fieldNames,sort).findAll();
 
         return days;
     }
 
-    public RealmResults<Day> getDaysOfMonth(int month, int year){
-        RealmResults<Day> days = realm.where(Day.class)
-                .equalTo("month", month)
-                .equalTo("year", year)
-                .findAll();
+    public RealmResults<Day> getLastDaysSorted(int numberOfDays){
+        String []fieldNames={"yearInt","monthInt","dayInt"};
+        Sort sort[]={Sort.DESCENDING,Sort.DESCENDING,Sort.DESCENDING};
+        RealmResults<Day> days = realm.where(Day.class).sort(fieldNames,sort).limit(numberOfDays).findAll();
 
         return days;
     }
+
+    public RealmResults<Day> getDaysOfMonth(int monthValue, int yearValue){
+        return getMonth(yearValue,monthValue).getDays();
+    }
+
     ///////////SHIFTS
     public void startNewShift(LocalTime time, int confidence) {
         startNewShift(time,"Untagged", confidence);
@@ -202,7 +295,7 @@ public class DataManager {
 
         realm.beginTransaction();
         Shift newShift = day.startNewShift(time, confidence);
-        newShift.tag = tag;
+        newShift.setTag(tag);
         state.runningShift = newShift;
         realm.commitTransaction();
 
@@ -295,59 +388,84 @@ public class DataManager {
         return overtime;
     }
 
-    public boolean importCSVLine(String line){
-        String[] split = line.split(";");
+    public boolean importJSON(JSONObject json){
+        int version = json.optInt("backupVersion",0);
 
-        switch(split[0]){
-            case "DAY":{
-                Day day = getDay(split[1]);
-                realm.beginTransaction();
-                day.fromStringCSV(line);
-                realm.commitTransaction();
-                break;}
-            case "SHIFT":{
-                Day day = getDay(split[1]);
-                realm.beginTransaction();
-                Shift shift = day.addEmptyShift();
-                shift.fromStringCSV(line);
-                realm.commitTransaction();
-                break;}
+        if(version == 0) {
+            return importJSONV0(json);
+        } else if(version == 1) {
+            return importJSONV1(json);
+        } else {
+            return false;
         }
-
-        return false;
     }
 
-    public boolean importCSV(Context context, Uri uri){
+    public boolean importJSONV1(JSONObject json){
+        realm.beginTransaction();
+        realm.delete(Day.class);
+        realm.delete(Shift.class);
+        realm.delete(WorkTag.class);
+        realm.delete(Month.class);
+        realm.delete(Year.class);
+        realm.commitTransaction();
+
         try {
-            InputStream inputStream =
-                    context.getContentResolver().openInputStream(uri);
+            JSONObject jsonObject = json.getJSONObject("settings");
 
-            BufferedReader reader = new BufferedReader(
-                     new InputStreamReader(Objects.requireNonNull(inputStream)));
-
-            String line;
-
-            realm.beginTransaction();
-            realm.delete(Day.class);
-            realm.delete(Shift.class);
-            realm.commitTransaction();
-
-            while ((line = reader.readLine()) != null) {
-                importCSVLine(line);
+            if(jsonObject != null) {
+                realm.beginTransaction();
+                settings.fromJSONV1(jsonObject);
+                realm.commitTransaction();
             }
-        } catch(Exception e){
+        } catch (JSONException e) {
             e.printStackTrace();
-            return false;
+        }
+
+        try {
+            JSONArray jsonObject = json.getJSONArray("years");
+
+            if(jsonObject != null) {
+                for(int i=0; i < jsonObject.length(); i++){
+                    JSONObject yearJSON = jsonObject.getJSONObject(i);
+
+                    Year year = getYear(yearJSON.getInt("yearInt"));
+
+                    realm.beginTransaction();
+                    year.fromJSONV1(yearJSON);
+                    realm.commitTransaction();
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            JSONArray tagsJson = json.getJSONArray("tags");
+
+            if(tagsJson != null) {
+                for(int i=0; i < tagsJson.length(); i++){
+                    JSONObject tagJSON = tagsJson.getJSONObject(i);
+
+                    realm.beginTransaction();
+                    WorkTag tag = realm.createObject(WorkTag.class);
+                    tag.fromJSONV1(tagJSON);
+                    realm.commitTransaction();
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
         return true;
     }
 
-    public boolean importJSON(JSONObject json){
+    public boolean importJSONV0(JSONObject json){
         realm.beginTransaction();
         realm.delete(Day.class);
         realm.delete(Shift.class);
         realm.delete(WorkTag.class);
+        realm.delete(Month.class);
+        realm.delete(Year.class);
         realm.commitTransaction();
 
         try {
@@ -355,7 +473,7 @@ public class DataManager {
 
             if(settingsJson != null) {
                 realm.beginTransaction();
-                settings.fromJSON(settingsJson);
+                settings.fromJSONV0(settingsJson);
                 realm.commitTransaction();
             }
         } catch (JSONException e) {
@@ -370,8 +488,9 @@ public class DataManager {
                     JSONObject dayJSON = daysJson.getJSONObject(i);
 
                     Day day = getDay(dayJSON.getString("Date"));
+
                     realm.beginTransaction();
-                    day.fromJSON(dayJSON);
+                    day.fromJSONV0(dayJSON);
                     realm.commitTransaction();
                 }
             }
@@ -388,7 +507,7 @@ public class DataManager {
 
                     realm.beginTransaction();
                     WorkTag tag = realm.createObject(WorkTag.class);
-                    tag.fromJSON(tagJson);
+                    tag.fromJSONV0(tagJson);
                     realm.commitTransaction();
                 }
             }
@@ -399,29 +518,13 @@ public class DataManager {
         return true;
     }
 
-    public boolean exportToCSV(File path){
-        try{
-            BufferedWriter writer = new BufferedWriter(new FileWriter(path));
-
-            RealmResults<Day> days = getAllDaysSorted();
-
-            for(Day d : days) {
-                writer.write(d.toStringCSV());
-            }
-
-            writer.close();
-        } catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
     public JSONObject exportToJSON(){
         JSONObject json = new JSONObject();
 
         try{
-            json.put("Settings",settings.toJSON());
+            json.put("date",System.currentTimeMillis()/1000);
+            json.put("backupVersion",1);
+            json.put("settings",settings.toJSON());
 
             JSONArray jsonTags = new JSONArray();
 
@@ -431,17 +534,17 @@ public class DataManager {
                 jsonTags.put(t.toJSON());
             }
 
-            json.put("Tags",jsonTags);
+            json.put("tags",jsonTags);
 
-            JSONArray jsonDays = new JSONArray();
+            JSONArray jsonYears= new JSONArray();
 
-            RealmResults<Day> days = getAllDaysSorted();
+            RealmResults<Year> years = getAllYearsOrdered();
 
-            for(Day d : days) {
-                jsonDays.put(d.toJSON());
+            for(Year y : years) {
+                jsonYears.put(y.toJSON());
             }
 
-            json.put("Days",jsonDays);
+            json.put("years",jsonYears);
 
 
         } catch(Exception e){
@@ -458,12 +561,50 @@ public class DataManager {
     private class DataMigration implements RealmMigration {
         @Override
         public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-            RealmSchema schema = realm.getSchema();
+            /*RealmSchema schema = realm.getSchema();
 
             if(oldVersion == 0){
                 schema.get("WorkTag")
                         .addField("trackMode",int.class);
             }
+
+            if(oldVersion == 1){
+                schema.get("AppSettings")
+                        .addField("backupAutoEnabled",boolean.class)
+                        .addField("backupsDaysToKeep",int.class);
+            }*/
+        }
+
+        public int hashCode() {
+            return DataMigration.class.hashCode();
+        }
+
+        public boolean equals(Object object) {
+            if(object == null) {
+                return false;
+            }
+            return object instanceof DataMigration;
         }
     }
+
+    void startIntervalUpdater() {
+        if(this != dataManager) return;
+        intervalUpdater.run();
+    }
+
+    void stopIntervalUpdater() {
+        if(this != dataManager) return;
+        mHandler.removeCallbacks(intervalUpdater);
+    }
+
+    Runnable intervalUpdater = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                callCallbacks();
+            } finally {
+                mHandler.postDelayed(this, 60000);
+            }
+        }
+    };
 }

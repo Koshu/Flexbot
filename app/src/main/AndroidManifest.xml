@@ -45,7 +45,7 @@
         </provider>
 
         <activity
-            android:name="de.koshu.flextime.ui.activities.OverviewActivity"
+            android:name="de.koshu.flextime.ui.activities.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -56,34 +56,45 @@
 
         <activity
             android:name="de.koshu.flextime.ui.activities.DayActivity"
-            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
+            android:parentActivityName="de.koshu.flextime.ui.activities.MainActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.MainActivity" />
         </activity>
-
+        <activity
+            android:name="de.koshu.flextime.ui.activities.OverviewActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.MainActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.koshu.flextime.ui.activities.MainActivity" />
+        </activity>
         <activity
             android:name="de.koshu.flextime.ui.activities.EventActivity"
-            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
+            android:parentActivityName="de.koshu.flextime.ui.activities.MainActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.MainActivity" />
         </activity>
         <activity
             android:name="de.koshu.flextime.ui.activities.SettingsActivity"
-            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
+            android:parentActivityName="de.koshu.flextime.ui.activities.MainActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.MainActivity" />
         </activity>
         <activity
             android:name="de.koshu.flextime.ui.activities.TagListActivity"
-            android:parentActivityName="de.koshu.flextime.ui.activities.OverviewActivity">
+            android:parentActivityName="de.koshu.flextime.ui.activities.MainActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.koshu.flextime.ui.activities.OverviewActivity" />
+                android:value="de.koshu.flextime.ui.activities.MainActivity" />
         </activity>
         <activity
             android:name="de.koshu.flextime.ui.activities.TagActivity"
             android:parentActivityName="de.koshu.flextime.ui.activities.TagListActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.koshu.flextime.ui.activities.TagListActivity" />
+        </activity>
+        <activity
+            android:name="de.koshu.flextime.ui.activities.BackupActivity"
+            android:parentActivityName="de.koshu.flextime.ui.activities.MainActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.koshu.flextime.ui.activities.MainActivity" />
         </activity>
     </application>
 

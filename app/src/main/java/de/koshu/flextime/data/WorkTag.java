@@ -59,10 +59,10 @@ public class WorkTag extends RealmObject {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("Name",name);
-            json.put("Mode",getModeString());
-            json.put("GeoLatitude",geoLatitude);
-            json.put("GeoLongitute",geoLongitute);
+            json.put("name",name);
+            json.put("mode",getModeString());
+            json.put("geoLatitude",geoLatitude);
+            json.put("geoLongitute",geoLongitute);
             json.put("addAutoPause",addAutoPause);
             json.put("addAutoPauseTime",addAutoPauseTime);
 
@@ -72,7 +72,7 @@ public class WorkTag extends RealmObject {
                 wifiArr.put(s);
             }
 
-            json.put("Wifis",wifiArr);
+            json.put("wifis",wifiArr);
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -81,7 +81,7 @@ public class WorkTag extends RealmObject {
         return json;
     }
 
-    public void fromJSON(JSONObject json){
+    public void fromJSONV0(JSONObject json){
         try {
             name = json.getString("Name");
             setMode(json.getString("Mode"));
@@ -91,6 +91,25 @@ public class WorkTag extends RealmObject {
             addAutoPauseTime = json.getInt("addAutoPauseTime");
 
             JSONArray wifiArr = json.getJSONArray("Wifis");
+
+            for(int i = 0; i < wifiArr.length(); i++){
+                associatedWIFIs.add(wifiArr.getString(i));;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void fromJSONV1(JSONObject json){
+        try {
+            name = json.getString("name");
+            setMode(json.getString("mode"));
+            geoLatitude = (float) json.getDouble("geoLatitude");
+            geoLongitute = (float) json.getDouble("geoLongitute");
+            addAutoPause = json.getBoolean("addAutoPause");
+            addAutoPauseTime = json.getInt("addAutoPauseTime");
+
+            JSONArray wifiArr = json.getJSONArray("wifis");
 
             for(int i = 0; i < wifiArr.length(); i++){
                 associatedWIFIs.add(wifiArr.getString(i));;

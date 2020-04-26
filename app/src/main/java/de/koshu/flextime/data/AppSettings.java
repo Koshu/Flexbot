@@ -18,6 +18,9 @@ public class AppSettings extends RealmObject {
     public float startOvertime = 0.0f;
     public int startVacationDays = 0;
 
+    public boolean backupAutoEnabled = false;
+    public int  backupsDaysToKeep = 14;
+
     public float getHoursToWork(DayOfWeek d){
         switch(d) {
             case MONDAY: return hoursToWork_Monday;
@@ -65,7 +68,7 @@ public class AppSettings extends RealmObject {
         return json;
     }
 
-    public void fromJSON(JSONObject json){
+    public void fromJSONV0(JSONObject json){
         try {
             hoursToWork_Monday = (float) json.getDouble("HoursOnMonday");
             hoursToWork_Tuesday = (float) json.getDouble("HoursOnTuesday");
@@ -80,5 +83,9 @@ public class AppSettings extends RealmObject {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public void fromJSONV1(JSONObject json){
+        fromJSONV0(json);
     }
 }

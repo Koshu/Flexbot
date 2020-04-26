@@ -9,14 +9,12 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-import de.koshu.flextime.Helper;
+import de.koshu.flextime.data.AppSettings;
+import de.koshu.flextime.data.BackupManager;
 import de.koshu.flextime.data.DataManager;
+
 
 public class MaintenanceWorker extends Worker {
     private Context context;
@@ -27,7 +25,7 @@ public class MaintenanceWorker extends Worker {
         this.context = context;
     }
 
-    public static void activateLogWorker(){
+    public static void activate(){
         PeriodicWorkRequest logWorkerRequest = new PeriodicWorkRequest
                 .Builder(MaintenanceWorker.class, 24, TimeUnit.HOURS)
                 .build();
@@ -38,45 +36,17 @@ public class MaintenanceWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        cleanBackups();
-        createBackup();
-        return null;
-    }
-
-    private void createBackup(){
         DataManager dataManager = DataManager.getNotSingletonManager();
+        AppSettings settings = dataManager.getSettings();
 
-        Calendar c = Calendar.getInstance();
-        String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(c.getTime());
+        BackupManager backMan = BackupManager.getManager();
 
-        String filename=time+".json.gz";
-
-        File path= new File(context.getFilesDir(), "backup");
-        path.mkdirs();
-
-        File file = new File(path, filename);
-
-        String jsonString = dataManager.exportToJSON().toString();
-
-        try {
-            Helper.writeToFile(file, Helper.compress(jsonString));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+        if(settings.backupAutoEnabled) {
+            backMan.createBackup();
+            backMan.cleanOldBackups(settings.backupsDaysToKeep);
         }
+
+        return Result.success();
     }
 
-    private void cleanBackups(){
-        File path= new File(context.getFilesDir(), "backup");
-        path.mkdirs();
-
-        File[] files = path.listFiles();
-        long now = System.currentTimeMillis();
-
-        for(File f : files){
-            if(now - f.lastModified() > 14*24*60*60*1000){
-                f.delete();
-            }
-        }
-    }
 }

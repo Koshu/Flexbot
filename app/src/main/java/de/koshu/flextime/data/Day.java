@@ -15,19 +15,57 @@ import org.threeten.bp.format.TextStyle;
 
 import java.util.Locale;
 
+import de.koshu.flextime.LocalizationHelper;
 import de.koshu.flextime.R;
-import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 
 public class Day extends RealmObject {
-    public int date;
-    public int month;
-    public int year;
-    public int type = 0;
-    public float requiredWorkHours;
+    private int dayInt;
+    private int monthInt;
+    private int yearInt;
 
-    public RealmList<Shift> shifts;
+    private Month monthObject;
+
+    private int type = 0;
+    private float requiredWorkHours = 0.0f;
+    private float workHours = 0.0f;
+
+    @LinkingObjects("day")
+    private final RealmResults<Shift> shifts = null;
+
+    //CONSTRUCTORS
+    public Day(){
+    }
+
+    public Day(Month monthObject, int dayInt){
+        this.monthObject = monthObject;
+        this.dayInt = dayInt;
+        this.monthInt = monthObject.getMonthInt();
+        this.yearInt = monthObject.getYear().getYearInt();
+
+        if (isWeekend()) {
+            setType(DayTypes.RESTDAY);
+        } else {
+            setType(DayTypes.WORKDAY);
+        }
+    }
+
+    //INFORMATION FLOW
+    public void update(){
+        float newWorkHours = 0.0f;
+
+        if(shifts !=  null) {
+            for (Shift shift : shifts) {
+                newWorkHours += shift.getNettoDuration() / 3600.0f;
+            }
+        }
+
+        workHours = newWorkHours;
+
+        monthObject.update();
+    }
 
     //HELPER FUNCTIONS
     public DayOfWeek getDayOfWeek(){
@@ -37,7 +75,15 @@ public class Day extends RealmObject {
     }
 
     public LocalDate getLocalDate(){
-        return LocalDate.of(year,month,date);
+        return LocalDate.of(getYearInt(),getMonthInt(), dayInt);
+    }
+
+    public int getMonthInt(){
+        return monthInt;
+    }
+
+    public int getYearInt(){
+        return yearInt;
     }
 
     public String getDayOfWeekString(){
@@ -46,20 +92,6 @@ public class Day extends RealmObject {
 
     public String getDayOfWeekStringShort(){
         return getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.GERMANY);
-    }
-
-    public void setDate(LocalDate lDate) {
-        this.date = lDate.getDayOfMonth();
-        this.month = lDate.getMonthValue();
-        this.year = lDate.getYear();
-
-        if (type == DayTypes.WORKDAY || type == DayTypes.RESTDAY){
-            if (isWeekend()) {
-                setType(DayTypes.RESTDAY);
-            } else {
-                setType(DayTypes.WORKDAY);
-            }
-        }
     }
 
     public boolean isWeekend(){
@@ -83,64 +115,76 @@ public class Day extends RealmObject {
         return lDate.format(formatter);
     }
 
-    public void setDate(String date){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        LocalDate lDate = LocalDate.parse(date.trim(),formatter);
-
-        this.month = lDate.getMonthValue();
-        this.year = lDate.getYear();
-        this.date = lDate.getDayOfMonth();
+    public String getDateStringShort(){
+        LocalDate lDate = getLocalDate();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM");
+        return lDate.format(formatter);
     }
 
     public float getOvertime(){
-        return getCumulatedNettoDuration() - getRequiredWork();
+        return workHours - requiredWorkHours;
+    }
+
+    public String getOvertimeString(){
+        return LocalizationHelper.floatToHourString(getOvertime(),true);
     }
 
     public float getRequiredWork(){
         return requiredWorkHours;
     }
 
+    public String getRequiredWorkString(){
+        return LocalizationHelper.floatToHourString(requiredWorkHours,false);
+    }
+
     public Shift startNewShift(LocalTime time, int confidence) {
-        Shift newShift = getRealm().createObject(Shift.class);
+        Shift newShift = new Shift(this);
+
+        newShift = getRealm().copyToRealm(newShift);
         newShift.startShift(time,confidence);
 
-        shifts.add(newShift);
-
+        update();
         return newShift;
     }
 
-    public float getCumulatedNettoDuration(){
-        float duration = 0;
+    public void deleteShift(Shift shift){
+        shift.deleteFromRealm();
+        update();
+    }
+    public float getWorkHours(){
+        return workHours;
+    }
 
-        for(Shift s : shifts){
-            duration += s.getNettoDuration()/3600.0f;
-        }
-
-        return duration;
+    public String getCumulatedNettoDurationString(){
+        return LocalizationHelper.floatToHourString(workHours,false);
     }
 
     public boolean isLastDayOfMonth(){
-        Realm realm = getRealm();
-
-        Day otherDay = realm.where(Day.class)
-                .equalTo("month",month)
-                .equalTo("year", year)
-                .greaterThan("date",date)
+        Day otherDay = monthObject.getDays().where()
+                .greaterThan("dayInt", dayInt)
                 .findFirst();
 
         return otherDay == null;
     }
 
     public boolean isFirstDayOfMonth(){
-        Realm realm = getRealm();
-
-        Day otherDay = realm.where(Day.class)
-                .equalTo("month",month)
-                .equalTo("year", year)
-                .lessThan("date",date)
+        Day otherDay = monthObject.getDays().where()
+                .lessThan("dayInt", dayInt)
                 .findFirst();
 
         return otherDay == null;
+    }
+
+    public int getDayInt() {
+        return dayInt;
+    }
+
+    public Month getMonthObject() {
+        return monthObject;
+    }
+
+    public float getRequiredWorkHours() {
+        return requiredWorkHours;
     }
 
     public int getIcon(){
@@ -176,6 +220,15 @@ public class Day extends RealmObject {
     public void setType(int type){
         this.type = type;
         this.requiredWorkHours = DayTypes.getHours(type);
+        update();
+    }
+
+    public int getType(){
+        return type;
+    }
+
+    public RealmResults<Shift> getShifts(){
+        return shifts;
     }
 
     public void setType(String type){
@@ -187,7 +240,8 @@ public class Day extends RealmObject {
     }
 
     public Shift addEmptyShift(){
-        Shift shift = getRealm().createObject(Shift.class);
+        Shift shift = new Shift(this);
+        shift = getRealm().copyToRealm(shift);
 
         LocalTime l1 = LocalTime.of(9,0);
         LocalTime l2 = LocalTime.of(17,0);
@@ -195,58 +249,24 @@ public class Day extends RealmObject {
         shift.setStartTime(l1, Shift.CONFIDENCE_MANUAL);
         shift.setEndTime(l2, Shift.CONFIDENCE_MANUAL);
 
-        shifts.add(shift);
-
+        update();
         return shift;
-    }
-
-    public String toStringCSV(){
-        String s = "DAY; ";
-
-        s += getDateString() + "; ";
-        s += getTypeString() + "; ";
-        s += requiredWorkHours + "\n";
-
-        for(Shift shift : shifts){
-            s += shift.toStringCSV();
-        }
-
-        return s;
-    }
-
-    public boolean fromStringCSV(String csv){
-        String[] split = csv.split(";");
-
-        if(!split[0].equals("DAY")) return false;
-        try {
-            String sDate = split[1];
-            String sType = split[2];
-            String sHours = split[3];
-
-            setDate(sDate);
-            setType(sType);
-            requiredWorkHours = Float.valueOf(sHours.trim());
-        } catch (Exception e){
-            e.printStackTrace();
-            return false;
-        }
-        return true;
     }
 
     public JSONObject toJSON(){
         JSONObject json = new JSONObject();
 
         try {
-            json.put("Date",getDateString());
-            json.put("Type",getTypeString());
-            json.put("RequiredWork",requiredWorkHours);
+            json.put("dayInt",dayInt);
+            json.put("type",getTypeString());
+            json.put("requiredWorkHours",requiredWorkHours);
 
             JSONArray jsonArr = new JSONArray();
             for(Shift shift : shifts){
                 jsonArr.put(shift.toJSON());
             }
 
-            json.put("Shifts", jsonArr);
+            json.put("shifts", jsonArr);
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -255,9 +275,8 @@ public class Day extends RealmObject {
         return json;
     }
 
-    public void fromJSON(JSONObject json){
+    public void fromJSONV0(JSONObject json){
         try {
-            setDate(json.getString("Date"));
             setType(json.getString("Type"));
             requiredWorkHours = (float) json.getDouble("RequiredWork");
 
@@ -266,10 +285,31 @@ public class Day extends RealmObject {
             for(int i=0; i < shiftsArr.length(); i++){
                 JSONObject shiftJSON = shiftsArr.getJSONObject(i);
                 Shift shift = addEmptyShift();
-                shift.fromJSON(shiftJSON);
+                shift.fromJSONV0(shiftJSON);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        update();
+    }
+
+    public void fromJSONV1(JSONObject json){
+        try {
+            setType(json.getString("type"));
+            requiredWorkHours = (float) json.getDouble("requiredWorkHours");
+
+            JSONArray shiftsArr = json.getJSONArray("shifts");
+
+            for(int i=0; i < shiftsArr.length(); i++){
+                JSONObject shiftJSON = shiftsArr.getJSONObject(i);
+                Shift shift = addEmptyShift();
+                shift.fromJSONV1(shiftJSON);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        update();
     }
 }

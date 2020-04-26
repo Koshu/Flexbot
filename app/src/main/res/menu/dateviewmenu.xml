@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_yearview"
+        android:icon="@drawable/calendar_text"
+        android:theme="@style/AppTheme.ActionBar"
+        android:title="Jahre"
+        app:itemIconTint="@color/colorIcons"
+        app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/action_monthview"
+        android:icon="@drawable/calendar_month"
+        android:title="Monate"
+        android:theme="@style/AppTheme.ActionBar"
+        app:itemIconTint="@color/colorIcons"
+        app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_dayview"
+        android:icon="@drawable/calendar_blank"
+        android:title="Tage"
+        android:theme="@style/AppTheme.ActionBar"
+        app:itemIconTint="@color/colorIcons"
+        app:showAsAction="ifRoom"/>
+</menu>

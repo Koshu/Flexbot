@@ -6,11 +6,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import de.koshu.flextime.R;
 import de.koshu.flextime.data.Shift;
@@ -87,11 +89,10 @@ public abstract class ShiftNotificationService extends Service {
 
         builder
                 .setShowWhen(false)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setSmallIcon(R.drawable.appicon_small);
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
                 //.setContentIntent(pendingIntent);
 
-        if(shift != null && shift.state != Shift.STATE_CLOSED && shift.state != Shift.STATE_UNSURE){
+        if(shift != null && !shift.isState(Shift.STATE_CLOSED) && !shift.isState(Shift.STATE_UNSURE)){
             Intent pauseIntent = new Intent(this, ShiftService.class);
             pauseIntent.setAction(ACTION_PAUSESHIFT);
             PendingIntent pendingPauseIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
@@ -105,26 +106,30 @@ public abstract class ShiftNotificationService extends Service {
             PendingIntent pendingUnpauseIntent = PendingIntent.getService(this, 0, unpauseIntent, 0);
 
 
-            switch(shift.state) {
+            switch(shift.getState()) {
                 case Shift.STATE_PAUSED:
                     builder
                             .addAction(R.drawable.play, "RESUME", pendingUnpauseIntent)
                             .addAction(R.drawable.stop, "STOP", pendingStopIntent)
+                            .setSmallIcon(R.drawable.appicon_small_pause)
+                            .setColor(ContextCompat.getColor(this, R.color.colorYellow))
                             .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                                     .setShowActionsInCompactView(0)
                                     .setShowActionsInCompactView(1))
                             .setContentTitle("Schicht pausiert")
-                            .setContentText(shift.tag + " - pausiert seit: " + shift.getPauseStartTimeString());
+                            .setContentText(shift.getTag() + " - pausiert seit: " + shift.getPauseStartTimeString());
                     break;
                 case Shift.STATE_RUNNING:
                     builder
                             .addAction(R.drawable.pause, "PAUSE", pendingPauseIntent)
                             .addAction(R.drawable.stop, "STOP", pendingStopIntent)
+                            .setSmallIcon(R.drawable.appicon_small_play)
+                            .setColor(ContextCompat.getColor(this, R.color.colorRed))
                             .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                                     .setShowActionsInCompactView(0)
                                     .setShowActionsInCompactView(1))
                             .setContentTitle("Schicht läuft")
-                            .setContentText(shift.tag + " - gestartet um: " + shift.getStartTimeString());
+                            .setContentText(shift.getTag() + " - gestartet um: " + shift.getStartTimeString());
                     break;
             }
 
@@ -136,6 +141,8 @@ public abstract class ShiftNotificationService extends Service {
 
             builder
                     .addAction(R.drawable.play, "Start", pendingStartIntent)
+                    .setSmallIcon(R.drawable.appicon_small)
+                    .setColor(ContextCompat.getColor(this, R.color.colorPrimary))
                     .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                             .setShowActionsInCompactView(0))
                     .setContentTitle("Keine Schicht")

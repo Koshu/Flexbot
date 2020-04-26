@@ -25,4 +25,14 @@
         <item name="android:minHeight">8dip</item>
         <item name="android:maxHeight">20dip</item>
     </style>
+
+    <style name="AppTheme.ActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="actionMenuTextColor">@color/colorIcons</item>
+        <item name="android:textColorPrimary">@color/colorIcons</item>
+        <item name="android:textColorSecondary">@color/colorIcons</item>
+        <item name="colorControlNormal">@color/colorIcons</item>
+        <item name="colorPrimary">@color/colorIcons</item>
+        <item name="colorPrimaryDark">@color/colorIcons</item>
+        <item name="colorAccent">@color/colorIcons</item>
+    </style>
 </resources>

@@ -5,6 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+<androidx.core.widget.NestedScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -123,18 +127,46 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recy_eventlist"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            tools:listitem="@layout/item_shift" />
-    </LinearLayout>
+            android:nestedScrollingEnabled="false"
+            tools:listitem="@layout/item_shift" >
+        </androidx.recyclerview.widget.RecyclerView>
 
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="140dp" />
+    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="bottom|right"
         android:layout_margin="@dimen/fab_margin"
         android:tint="@color/colorIcons"
         app:srcCompat="@drawable/plus" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_marginEnd="85dp"
+        android:tint="@color/colorIcons"
+        app:srcCompat="@drawable/play"
+        app:layout_anchor="@id/fab"
+        app:layout_anchorGravity="start" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_marginEnd="155dp"
+        android:clickable="false"
+        android:tint="@color/colorIcons"
+        app:srcCompat="@drawable/pause"
+        app:layout_anchor="@id/fab2"
+        app:layout_anchorGravity="left" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

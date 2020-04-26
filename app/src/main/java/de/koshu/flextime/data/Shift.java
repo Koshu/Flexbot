@@ -21,29 +21,90 @@ public class Shift extends RealmObject {
     public static final int CONFIDENCE_AUTO_OK = 1;
     public static final int CONFIDENCE_AUTO_NOTOK = 2;
 
-    public int state = STATE_RUNNING;
-    public int start = -1;  //Seconds since start of Day
-    public int end = -1;  //Seconds since start of Day
-    public int startConfidence;
-    public int endConfidence;
-    public int lastPauseStart;  //Seconds since start of Day
-    public long pauseDuration = 0;  //Seconds
-    public String tag = "Untagged";
+    private int state = STATE_RUNNING;
+    private int start = -1;  //Seconds since start of Day
+    private int end = -1;  //Seconds since start of Day
+    private int startConfidence;
+    private int endConfidence;
+    private int lastPauseStart;  //Seconds since start of Day
+    private long pauseDuration = 0;  //Seconds
+    private String tag = "Untagged";
 
-    @LinkingObjects("shifts")
-    public final RealmResults<Day> days = null;
+    private Day day;
+
+    //CONSTRUCTORS
+    public Shift(){
+    }
+
+    public Shift(Day day){
+        this.day = day;
+    }
+
+    //INFORMATION FLOW
+    public void update(){
+        day.update();
+    }
+
+    // GETTER AND SETTER FUNCTIONS
 
 
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+        update();
+    }
+
+    public int getEnd() {
+        return end;
+    }
+
+    public void setEnd(int end) {
+        this.end = end;
+        update();
+    }
+
+    public int getStartConfidence() {
+        return startConfidence;
+    }
+
+    public void setStartConfidence(int startConfidence) {
+        this.startConfidence = startConfidence;
+        update();
+    }
+
+    public int getEndConfidence() {
+        return endConfidence;
+    }
+
+    public void setEndConfidence(int endConfidence) {
+        this.endConfidence = endConfidence;
+        update();
+    }
+
+    public void setState(int state) {
+        this.state = state;
+        update();
+    }
+
+    public int getLastPauseStart() {
+        return lastPauseStart;
+    }
+
+    public void setLastPauseStart(int lastPauseStart) {
+        this.lastPauseStart = lastPauseStart;
+        update();
+    }
+
+    public void setPauseDuration(long pauseDuration) {
+        this.pauseDuration = pauseDuration;
+        update();
+    }
 
     public Day getDay(){
-        if(days.size() > 1){
-            Log.e("Shift", "Multiple days!");
-            return null;
-        }
-
-        if(days.size() == 0) return null;
-
-        return days.get(0);
+        return day;
     }
 
     public void setPauseInMin(String s){
@@ -52,6 +113,24 @@ public class Shift extends RealmObject {
 
     public void setPauseInMin(int min){
         pauseDuration = min * 60;
+        update();
+    }
+
+    public String getTag(){
+        return tag;
+    }
+
+    public void setTag(String tag){
+        this.tag = tag;
+        update();
+    }
+
+    public int getState(){
+        return state;
+    }
+
+    public boolean isState(int state){
+        return this.state == state;
     }
 
     public void setState(String state){
@@ -61,6 +140,8 @@ public class Shift extends RealmObject {
             case "Unsure": this.state = STATE_UNSURE; break;
             case "Paused": this.state = STATE_PAUSED; break;
         }
+
+        update();
     }
 
     public String getStateString(){
@@ -79,6 +160,8 @@ public class Shift extends RealmObject {
             case "Auto": startConfidence = CONFIDENCE_AUTO_OK; break;
             case "Auto NotOK": startConfidence = CONFIDENCE_AUTO_NOTOK; break;
         }
+
+        update();
     }
 
     public String getStartConfidenceString(){
@@ -96,6 +179,8 @@ public class Shift extends RealmObject {
             case "Auto": endConfidence = CONFIDENCE_AUTO_OK; break;
             case "Auto NotOK": endConfidence = CONFIDENCE_AUTO_NOTOK; break;
         }
+
+        update();
     }
 
     public String getEndConfidenceString(){
@@ -120,8 +205,14 @@ public class Shift extends RealmObject {
     }
 
     public String getNettoDurationString(){
-        long dur = getNettoDuration();
-        return String.format("%1.1fh",(float) dur/3600.0f);
+        return hoursToString(getNettoDuration()/60.0f/60.0f);
+    }
+
+    private String hoursToString(float hours){
+        int h = (int)hours;
+        int m = (int)(hours%1*60.0f);
+
+        return String.format("%d:%02d",h,m);
     }
 
     public long getDuration(){
@@ -148,6 +239,7 @@ public class Shift extends RealmObject {
         start = time != null ? time.toSecondOfDay() : LocalTime.now().toSecondOfDay();
         startConfidence = confidence;
 
+        update();
         return true;
     }
 
@@ -160,6 +252,7 @@ public class Shift extends RealmObject {
         endConfidence = confidence;
         state = Shift.STATE_CLOSED;
 
+        update();
         return true;
     }
 
@@ -169,6 +262,7 @@ public class Shift extends RealmObject {
         lastPauseStart = time != null ? time.toSecondOfDay() : LocalTime.now().toSecondOfDay();
         state = STATE_PAUSED;
 
+        update();
         return true;
     }
 
@@ -188,6 +282,7 @@ public class Shift extends RealmObject {
         lastPauseStart = -1;
         state = STATE_RUNNING;
 
+        update();
         return true;
     }
 
@@ -207,11 +302,13 @@ public class Shift extends RealmObject {
 
     public void setStartTime(LocalTime time){
         start = time.toSecondOfDay();
+        update();
     }
 
     public void setStartTime(LocalTime time, int confidence){
         setStartTime(time);
         startConfidence = confidence;
+        update();
     }
 
     public void setEndTime(String s){
@@ -220,15 +317,18 @@ public class Shift extends RealmObject {
         } catch (Exception e){
             end = -1;
         }
+        update();
     }
 
     public void setEndTime(LocalTime time){
         end = time.toSecondOfDay();
+        update();
     }
 
     public void setEndTime(LocalTime time, int confidence){
         setEndTime(time);
         endConfidence = confidence;
+        update();
     }
 
     public LocalTime getEndLocalTime(){
@@ -255,13 +355,13 @@ public class Shift extends RealmObject {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("StartTime",getStartTimeString());
-            json.put("StartTimeConf",getStartConfidenceString());
-            json.put("State",getStateString());
-            json.put("EndTime",getEndTimeString());
-            json.put("EndTimeConf", getEndConfidenceString());
-            json.put("PauseDuration",getPauseDurationString());
-            json.put("Tag",this.tag);
+            json.put("startTime",getStartTimeString());
+            json.put("startTimeConf",getStartConfidenceString());
+            json.put("state",getStateString());
+            json.put("endTime",getEndTimeString());
+            json.put("endTimeConf", getEndConfidenceString());
+            json.put("pauseDuration",getPauseDurationString());
+            json.put("tag",this.tag);
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -270,7 +370,7 @@ public class Shift extends RealmObject {
         return json;
     }
 
-    public void fromJSON(JSONObject json){
+    public void fromJSONV0(JSONObject json){
         try {
             setStartTime(json.getString("StartTime"));
             setStartConfidence(json.getString("StartTimeConf"));
@@ -283,44 +383,24 @@ public class Shift extends RealmObject {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        update();
     }
-
-    public String toStringCSV(){
-        String s = "SHIFT; ";
-
-        s += getDateString() + "; ";
-        s += getStartTimeString() + "; ";
-        s += getStartConfidenceString() + "; ";
-        s += getStateString() + "; ";
-        s += getEndTimeString() + "; ";
-        s += getEndConfidenceString() + "; ";
-        s += getPauseDurationString() + "\n";
-
-        return s;
-    }
-
-    public boolean fromStringCSV(String csv){
-        String[] split = csv.split(";");
-
-        if(!split[0].equals("SHIFT")) return false;
+    public void fromJSONV1(JSONObject json){
         try {
-            String sStartTime = split[2];
-            String sStartConf = split[3];
-            String sState = split[4];
-            String sEndTime = split[5];
-            String sEndConf = split[6];
-            String sPause = split[7];
+            setStartTime(json.getString("startTime"));
+            setStartConfidence(json.getString("startTimeConf"));
+            setState(json.getString("state"));
+            setEndTime(json.getString("endTime"));
+            setEndConfidence(json.getString("endTimeConf"));
+            setPauseInMin(json.getString("pauseDuration"));
+            this.tag = json.optString("tag","Untagged");
 
-            setStartTime(sStartTime);
-            setStartConfidence(sStartConf);
-            setState(sState);
-            setEndTime(sEndTime);
-            setEndConfidence(sEndConf);
-            setPauseInMin(sPause);
-        } catch (Exception e){
+        } catch (JSONException e) {
             e.printStackTrace();
-            return false;
         }
-        return true;
+
+        update();
     }
+
 }

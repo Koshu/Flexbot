@@ -35,7 +35,7 @@ public class ShiftListAdapter extends RealmRecyclerViewAdapter<Shift, ShiftListA
         final Shift obj = getItem(position);
         holder.data = obj;
 
-        holder.txtTag.setText(obj.tag);
+        holder.txtTag.setText(obj.getTag());
         holder.txtStart.setText(obj.getStartTimeString());
         holder.txtEnd.setText(obj.getEndTimeString());
         holder.txtPause.setText(obj.getPauseDurationString() + " min");

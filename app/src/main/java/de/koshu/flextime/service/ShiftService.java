@@ -4,11 +4,8 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
-import de.koshu.flextime.data.AppState;
 import de.koshu.flextime.data.DataManager;
 import de.koshu.flextime.data.Shift;
-import io.realm.Realm;
-import io.realm.RealmChangeListener;
 
 
 public class ShiftService extends ShiftNotificationService {

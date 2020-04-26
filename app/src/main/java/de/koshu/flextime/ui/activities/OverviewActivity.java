@@ -1,428 +1,274 @@
 package de.koshu.flextime.ui.activities;
 
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.material.appbar.CollapsingToolbarLayout;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
-import de.koshu.flextime.BuildConfig;
-import de.koshu.flextime.Helper;
 import de.koshu.flextime.R;
-import de.koshu.flextime.automation.AutomationManager;
-import de.koshu.flextime.data.AppState;
 import de.koshu.flextime.data.DataManager;
 import de.koshu.flextime.data.Day;
-import de.koshu.flextime.data.Shift;
-import de.koshu.flextime.service.ShiftService;
-import de.koshu.flextime.ui.fragments.DayListFragment;
+import de.koshu.flextime.data.Month;
+import de.koshu.flextime.data.Year;
+import de.koshu.flextime.ui.fragments.DayFragment;
+import de.koshu.flextime.ui.fragments.MonthFragment;
+import de.koshu.flextime.ui.fragments.YearFragment;
+import de.koshu.flextime.ui.fragments.ZoomOutPageTransformer;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 
 
-public class OverviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class OverviewActivity extends AppCompatActivity {
     private Realm realm;
-    private DataManager dataManager;
-    private AutomationManager autoManager;
+    private ViewPager2 viewPager;
+    private FragmentStateAdapter pagerAdapter;
+    private Menu menu;
+    private int currentPageType = 0;
 
-    private AppState appState;
+    private final RealmResults<Year> years = DataManager.getManager().getAllYearsOrdered();
+    private final RealmResults<Month> months = DataManager.getManager().getAllMonthsOrdered();
+    private final RealmResults<Day> days = DataManager.getManager().getAllDaysOrdered();
 
-    private TextView txtState, txtStartTime, txtWorkTime, txtAllOvertime;
-    private FloatingActionButton btnStart, btnStop;
-
-    private RealmChangeListener<Day> dayListener;
-    private RealmChangeListener<Shift> shiftListener;
-
-    private DrawerLayout mDrawerLayout;
-
-    private String shiftState = "Idle";
-
-    private DayListFragment dayListFragment;
+    public static final int PAGETYPE_YEAR = 0;
+    public static final int PAGETYPE_MONTH = 1;
+    public static final int PAGETYPE_DAY = 2;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_overview);
 
-        dataManager = DataManager.getManager();
-        autoManager = AutomationManager.getManager();
+        setContentView(R.layout.activity_year);
 
-        realm = dataManager.getRealm();
+        realm = DataManager.getManager().getRealm();
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("Jahr");
 
-        final ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.menu);
-        ab.setDisplayHomeAsUpEnabled(true);
+        viewPager = findViewById(R.id.pager);
+        pagerAdapter = new YearSlidePagerAdapter(this);
+        viewPager.setPageTransformer(new ZoomOutPageTransformer());
+        viewPager.setOffscreenPageLimit(3);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setCurrentItem(viewPager.getChildCount()-1);
+        Bundle bundle = getIntent().getExtras();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        if (navigationView != null) {
-            navigationView.setNavigationItemSelectedListener(this);
+        if(bundle != null) {
+            int type = bundle.getInt("pageType",PAGETYPE_YEAR);
+            int yearInt = bundle.getInt("yearInt",-1);
+            int monthInt = bundle.getInt("monthInt",-1);
+            int dayInt = bundle.getInt("dayInt",-1);
+
+            switchPageAdapter(type,yearInt,monthInt,dayInt);
+        } else {
+            switchPageAdapter(PAGETYPE_YEAR,-1,-1,-1);
         }
-
-        txtState = findViewById(R.id.txt_state);
-        txtStartTime = findViewById(R.id.txt_startTime);
-        txtWorkTime = findViewById(R.id.txt_workTime);
-        txtAllOvertime = findViewById(R.id.txt_allOvertime);
-
-        btnStop = findViewById(R.id.btn_stop);
-        btnStart = findViewById(R.id.btn_start);
-
-        btnStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch(shiftState){
-                    case "Idle":
-                        dataManager.startNewShift(null, Shift.CONFIDENCE_MANUAL);
-                        break;
-                    case "Running":
-                        dataManager.pauseShift(null, Shift.CONFIDENCE_MANUAL);
-                        break;
-                    case "Paused":
-                        dataManager.unpauseShift(null, Shift.CONFIDENCE_MANUAL);
-                        break;
-                }
-            }
-        });
-
-        btnStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dataManager.endShift(null, Shift.CONFIDENCE_MANUAL);
-            }
-        });
-
-        CollapsingToolbarLayout collapsingToolbar = findViewById(R.id.collapsing_toolbar);
-        collapsingToolbar.setTitle("Übersicht");
-
-        appState = dataManager.getAppState();
-
-        dataManager.addChangeListener(new DataManager.DataManagerListener() {
-            @Override
-            public void onChange() {
-                updateDayGui();
-            }
-        });
-
-
-        Fragment dayListFragment = getSupportFragmentManager().findFragmentById(R.id.fragment);
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        //getMenuInflater().inflate(R.menu.sample_actions, menu);
+        getMenuInflater().inflate(R.menu.dateviewmenu, menu);
+        this.menu = menu;
+        updateMenuIconAccentColors();
         return true;
     }
 
-    @Override
-    public void onResume(){
-        super.onResume();
+    public void updateMenuIconAccentColors(){
+        if(menu == null) return;
 
-        testPermission();
+        int normal = ContextCompat.getColor(this,R.color.colorIcons);
+        int accent = ContextCompat.getColor(this,R.color.colorAccent);
 
-        if(!isServiceRunning()) {
-            Intent intent = new Intent(OverviewActivity.this, ShiftService.class);
-            intent.setAction(ShiftService.ACTION_START_FOREGROUND_SERVICE);
+        Drawable yearIcon = menu.findItem(R.id.action_yearview).getIcon().mutate();
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent);
-            } else {
-                startService(intent);
-            }
+        if(currentPageType == PAGETYPE_YEAR){
+            yearIcon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
+        } else {
+            yearIcon.setColorFilter(normal, PorterDuff.Mode.SRC_IN);
         }
 
-        updateDayGui();
-        //MaintenanceWorker.activateLogWorker();
+        Drawable monthIcon = menu.findItem(R.id.action_monthview).getIcon().mutate();
+
+        if(currentPageType == PAGETYPE_MONTH){
+            monthIcon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
+        } else {
+            monthIcon.setColorFilter(normal, PorterDuff.Mode.SRC_IN);
+        }
+
+        Drawable dayIcon = menu.findItem(R.id.action_dayview).getIcon().mutate();
+
+        if(currentPageType == PAGETYPE_DAY){
+            dayIcon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
+        } else {
+            dayIcon.setColorFilter(normal, PorterDuff.Mode.SRC_IN);
+        }
     }
 
-    private boolean isServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("de.koshu.flextime.service.ShiftService".equals(service.service.getClassName())) {
-                return true;
-            }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_dayview) {
+            switchPageAdapter(PAGETYPE_DAY,-1,-1,-1);
+            return true;
         }
-        return false;
+
+        if (id == R.id.action_monthview) {
+            switchPageAdapter(PAGETYPE_MONTH,-1,-1,-1);
+            return true;
+        }
+
+        if(id == R.id.action_yearview) {
+            switchPageAdapter(PAGETYPE_YEAR,-1,-1,-1);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void switchPageAdapter(int type, int yearInt, int monthInt, int dayInt){
+        switch (type){
+            case PAGETYPE_YEAR: {
+                getSupportActionBar().setTitle("Jahre");
+                currentPageType = type;
+                updateMenuIconAccentColors();
+
+                pagerAdapter = new YearSlidePagerAdapter(this);
+                viewPager.setAdapter(pagerAdapter);
+
+                if(yearInt == -1){
+                    viewPager.setCurrentItem(years.size()-1,false);
+                } else {
+                    Year searched = years.where()
+                            .equalTo("yearInt", yearInt)
+                            .findFirst();
+
+                    int idx = years.indexOf(searched);
+
+                    viewPager.setCurrentItem(idx,false);
+                }
+            } break;
+            case PAGETYPE_MONTH: {
+                getSupportActionBar().setTitle("Monate");
+                currentPageType = type;
+                updateMenuIconAccentColors();
+
+                pagerAdapter = new MonthSlidePagerAdapter(this);
+                viewPager.setAdapter(pagerAdapter);
+
+                if(yearInt == -1){
+                    viewPager.setCurrentItem(months.size()-1,false);
+                } else {
+                    Month searched = months.where()
+                            .equalTo("yearInt", yearInt)
+                            .equalTo("monthInt", monthInt)
+                            .findFirst();
+
+                    int idx = months.indexOf(searched);
+
+                    viewPager.setCurrentItem(idx,false);
+                }
+            } break;
+            case PAGETYPE_DAY: {
+                getSupportActionBar().setTitle("Tage");
+                currentPageType = type;
+                updateMenuIconAccentColors();
+
+                pagerAdapter = new DaySlidePagerAdapter(this);
+                viewPager.setAdapter(pagerAdapter);
+
+                if(yearInt == -1){
+                    viewPager.setCurrentItem(days.size()-1,false);
+                } else {
+                    Day searched = days.where()
+                            .equalTo("yearInt", yearInt)
+                            .equalTo("monthInt", monthInt)
+                            .equalTo("dayInt", dayInt)
+                            .findFirst();
+
+                    int idx = days.indexOf(searched);
+
+                    viewPager.setCurrentItem(idx,false);
+                }
+            } break;
+        }
     }
 
     public Realm getRealm(){
         return realm;
     }
 
-    private void updateDayGui(){
-        Shift shift = appState.runningShift;
-        Day today = appState.runningDay;
-        txtAllOvertime.setText(String.format("%.1fh",dataManager.getAllOvertime()));
-        if(shift != null){
-            txtStartTime.setText(shift.getStartTimeString());
-            txtState.setText(shift.getStateString());
-            shiftState = shift.getStateString();
-        } else {
-            txtStartTime.setText("--:--");
-            txtState.setText("Idle");
-            shiftState = "Idle";
-            btnStop.setEnabled(false);
-            btnStart.setImageResource(R.drawable.play);
+    private class YearSlidePagerAdapter extends FragmentStateAdapter {
+        public YearSlidePagerAdapter(FragmentActivity fa) {
+            super(fa);
         }
 
-        switch(shiftState){
-            case "Idle":
-                btnStop.setEnabled(false);
-                btnStart.setImageResource(R.drawable.play);
-                break;
-            case "Running":
-                btnStop.setEnabled(true);
-                btnStart.setImageResource(R.drawable.pause);
-                break;
-            case "Paused":
-                btnStop.setEnabled(true);
-                btnStart.setImageResource(R.drawable.play);
-                break;
+        @Override
+        public Fragment createFragment(int position) {
+            YearFragment fragment = new YearFragment();
+            Bundle args = new Bundle();
+            args.putInt("yearInt", years.get(position).getYearInt());
+            fragment.setArguments(args);
+            return fragment;
         }
 
-        if(today == null) {
-            today = dataManager.getToday();
-        }
-
-        String work = String.format("%.1f / %.1f", today.getCumulatedNettoDuration(), today.getRequiredWork());
-        txtWorkTime.setText(work);
-
-        if(dayListFragment != null) dayListFragment.update();
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-        mDrawerLayout.closeDrawers();
-
-        switch(menuItem.getItemId()){
-            case R.id.nav_events: {
-                Intent intent = new Intent(this, EventActivity.class);
-                startActivity(intent);
-            } break;
-            case R.id.nav_settings: {
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
-            } break;
-            case R.id.nav_tags:
-                Intent intent = new Intent(this, TagListActivity.class);
-                startActivity(intent);
-                break;
-            /*case R.id.nav_export:
-                exportAndSendAsCSV();
-                break;*/
-            case R.id.nav_exportJSON:
-                exportAndSendAsJSON();
-                break;
-            case R.id.nav_importJSON:
-                importJSON();
-                break;
-            case R.id.nav_logfile:
-                sendLogcatMail();
-                break;
-            /*case R.id.nav_import:
-                importCSV();
-                break;*/
-        }
-        return true;
-    }
-
-    private void exportAndSendAsCSV(){
-        Calendar c = Calendar.getInstance();
-        String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(c.getTime());
-
-        String filename=time+".csv";
-
-        File path= new File(this.getFilesDir(), "csv");
-        path.mkdirs();
-
-        File file = new File(path, filename);
-
-        dataManager.exportToCSV(file);
-
-        Uri uri = FileProvider.getUriForFile(this,"de.koshu.flextime.fileprovider", file);
-
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.setType("text/csv");
-        intent.putExtra(Intent.EXTRA_TEXT, "Backup of work hours");
-
-        startActivity(Intent.createChooser(intent , null));
-    }
-
-    private void exportAndSendAsJSON(){
-        /*Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        //intent.putExtra(Intent.EXTRA_TITLE, "test.csv");
-        //intent.setType("text/csv");
-        //intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        startActivityForResult(intent , 42);*/
-
-
-        Calendar c = Calendar.getInstance();
-        String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(c.getTime());
-
-        String filename=time+".json.gz";
-
-        File path= new File(this.getFilesDir(), "csv");
-        path.mkdirs();
-
-        File file = new File(path, filename);
-
-        String jsonString = dataManager.exportToJSON().toString();
-
-        try {
-            Helper.writeToFile(file, Helper.compress(jsonString));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        Uri uri = FileProvider.getUriForFile(this,"de.koshu.flextime.fileprovider", file);
-
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.setType("text/csv");
-        intent.putExtra(Intent.EXTRA_TEXT, "Backup of work hours");
-
-        startActivity(Intent.createChooser(intent , null));
-    }
-
-    private void importCSV(){
-
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/*");
-
-        startActivityForResult(intent, 33);
-    }
-
-    private void importJSON(){
-
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/*");
-
-        startActivityForResult(intent, 32);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode,
-                                 Intent resultData) {
-        super.onActivityResult(requestCode,resultCode,resultData);
-
-        if (requestCode == 33 && resultCode == Activity.RESULT_OK) {
-            Uri uri = null;
-            if (resultData != null) {
-                uri = resultData.getData();
-                dataManager.importCSV(getApplicationContext(), uri);
-                dataManager.getToday();
-            }
-        }
-
-        if (requestCode == 32 && resultCode == Activity.RESULT_OK) {
-            Uri uri = null;
-            if (resultData != null) {
-                uri = resultData.getData();
-                try {
-                    String json = Helper.decompress(Helper.readFileFromUri(getApplicationContext(), uri));
-                    dataManager.importJSON(new JSONObject(json));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+        @Override
+        public int getItemCount() {
+            return years.size();
         }
     }
 
-    public void testPermission(){
-        final boolean locationPerm = hasPermission("android.permission.ACCESS_FINE_LOCATION");
-        final Activity parAct = this;
+    private class MonthSlidePagerAdapter extends FragmentStateAdapter {
+        public MonthSlidePagerAdapter(FragmentActivity fa) {
+            super(fa);
+        }
 
-        if(!locationPerm) {
-            String[] perms = new String[]{"android.permission.ACCESS_FINE_LOCATION"};
-            ActivityCompat.requestPermissions(parAct, perms, 3);
+        @Override
+        public Fragment createFragment(int position) {
+            MonthFragment fragment = new MonthFragment();
+            Bundle args = new Bundle();
+            args.putInt("yearInt", months.get(position).getYearInt());
+            args.putInt("monthInt", months.get(position).getMonthInt());
+            fragment.setArguments(args);
+            return fragment;
+        }
 
-            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        @Override
+        public int getItemCount() {
+            return months.size();
         }
     }
 
-    public boolean hasPermission(String permission){
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-                ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    public void sendLogcatMail(){
-        File outputFolder= new File(this.getFilesDir(), "csv");
-        outputFolder.mkdirs();
-
-        File outputFile = new File(outputFolder,  "app-logcat.txt");
-
-        try {
-            Runtime.getRuntime().exec(
-                    "logcat -f " + outputFile.getAbsolutePath());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+    private class DaySlidePagerAdapter extends FragmentStateAdapter {
+        public DaySlidePagerAdapter(FragmentActivity fa) {
+            super(fa);
         }
 
+        @Override
+        public Fragment createFragment(int position) {
+            DayFragment fragment = new DayFragment();
+            Bundle args = new Bundle();
+            args.putInt("monthInt", days.get(position).getMonthInt());
+            args.putInt("yearInt", days.get(position).getYearInt());
+            args.putInt("dayInt", days.get(position).getDayInt());
+            fragment.setArguments(args);
+            return fragment;
+        }
 
-        Intent intent = new Intent(Intent.ACTION_SEND);
-
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.setType("text/*");
-        intent.putExtra(Intent.EXTRA_TEXT, "Backup of work hours");
-        intent .putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", outputFile));
-
-        startActivity(Intent.createChooser(intent , "Send email..."));
+        @Override
+        public int getItemCount() {
+            return days.size();
+        }
     }
 }
-

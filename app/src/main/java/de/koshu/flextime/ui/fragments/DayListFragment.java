@@ -12,9 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import de.koshu.flextime.data.DataManager;
+import de.koshu.flextime.data.Day;
 import de.koshu.flextime.ui.activities.DayActivity;
 import de.koshu.flextime.R;
+import de.koshu.flextime.ui.activities.OverviewActivity;
 import io.realm.Realm;
+import io.realm.RealmResults;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -57,18 +60,21 @@ public class DayListFragment extends Fragment implements DayListAdapter.OnDayLis
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        listAdapter = new DayListAdapter(getContext(),this, DataManager.getManager().getAllDaysSorted());
+        RealmResults<Day> dayList = DataManager.getManager().getLastDaysSorted(60);
+
+        listAdapter = new DayListAdapter(getContext(),this, dayList);
         recyclerView.setAdapter(listAdapter);
     }
 
     @Override
     public void onDayClick(int date, int month, int year) {
-        Intent intent = new Intent(getActivity(), DayActivity.class);
+        Intent intent = new Intent(getActivity(), OverviewActivity.class);
 
         Bundle bundle = new Bundle();
-        bundle.putInt("date", date);
-        bundle.putInt("month", month);
-        bundle.putInt("year", year);
+        bundle.putInt("pageType",OverviewActivity.PAGETYPE_DAY);
+        bundle.putInt("dayInt", date);
+        bundle.putInt("monthInt", month);
+        bundle.putInt("yearInt", year);
 
         intent.putExtras(bundle);
         startActivity(intent);
