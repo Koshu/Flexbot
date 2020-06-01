@@ -87,7 +87,7 @@ public class OverviewActivity extends AppCompatActivity {
     public void updateMenuIconAccentColors(){
         if(menu == null) return;
 
-        int normal = ContextCompat.getColor(this,R.color.colorIcons);
+        int normal = ContextCompat.getColor(this,R.color.colorPrimary);
         int accent = ContextCompat.getColor(this,R.color.colorAccent);
 
         Drawable yearIcon = menu.findItem(R.id.action_yearview).getIcon().mutate();

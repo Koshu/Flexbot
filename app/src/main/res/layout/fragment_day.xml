@@ -147,7 +147,7 @@
         android:layout_margin="@dimen/fab_margin"
         android:tint="@color/colorIcons"
         app:srcCompat="@drawable/plus" />
-
+<!--
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab2"
         android:layout_width="wrap_content"
@@ -168,5 +168,5 @@
         android:tint="@color/colorIcons"
         app:srcCompat="@drawable/pause"
         app:layout_anchor="@id/fab2"
-        app:layout_anchorGravity="left" />
+        app:layout_anchorGravity="left" />-->
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

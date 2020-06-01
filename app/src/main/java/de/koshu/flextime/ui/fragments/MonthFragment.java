@@ -7,11 +7,14 @@ import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -28,6 +31,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalTime;
 
+import de.koshu.flextime.LocalizationHelper;
 import de.koshu.flextime.R;
 import de.koshu.flextime.data.DataManager;
 import de.koshu.flextime.data.Day;
@@ -84,7 +88,13 @@ public class MonthFragment extends Fragment implements DayListAdapter.OnDayListe
     }
 
     @Override
-    public void onActivityCreated (Bundle savedInstanceState){
+    public void onResume(){
+      super.onResume();
+      updateDayGui();
+    }
+
+    @Override
+    public void onActivityCreated (Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         context = getActivity();
@@ -93,12 +103,11 @@ public class MonthFragment extends Fragment implements DayListAdapter.OnDayListe
 
         Bundle bundle = getArguments();
 
-        if(bundle != null)
-        {
+        if (bundle != null) {
             monthInt = bundle.getInt("monthInt");
             yearInt = bundle.getInt("yearInt");
 
-            month = DataManager.getManager().getMonth(yearInt,monthInt);
+            month = DataManager.getManager().getMonth(yearInt, monthInt);
         } else {
             month = DataManager.getManager().getCurrentMonth();
         }
@@ -114,25 +123,42 @@ public class MonthFragment extends Fragment implements DayListAdapter.OnDayListe
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        String []fieldNames={"dayInt"};
-        Sort sort[]={Sort.DESCENDING};
+        String[] fieldNames = {"dayInt"};
+        Sort sort[] = {Sort.DESCENDING};
 
-        RealmResults<Day> dayList = month.getDays().where().sort(fieldNames,sort).findAll();
+        RealmResults<Day> dayList = month.getDays().where().sort(fieldNames, sort).findAll();
 
-        listAdapter = new DayListAdapter(getContext(),this, dayList, false,true);
+        listAdapter = new DayListAdapter(getContext(), this, dayList, false, true);
         recyclerView.setAdapter(listAdapter);
 
         updateDayGui();
+
+        txtOvertimePaid.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TimeDialogFragment timeFragment = new TimeDialogFragment(new TimeDialogFragment.OnTimeListener() {
+                    @Override
+                    public void onTimePicked(float time) {
+                        Realm realm = DataManager.getManager().getRealm();
+                        realm.beginTransaction();
+                        month.setPaidOvertime(time);
+                        realm.commitTransaction();
+                    }
+                }, month.getPaidOvertime());
+
+                timeFragment.show(getFragmentManager(), "TimeDialog");
+            }
+        });
     }
 
     private void updateDayGui(){
         txtMonth.setText(month.getMonthString());
         txtYear.setText(String.valueOf(month.getYearInt()));
         txtOvertimeMonth.setText(month.getOvertimeString());
-        txtOvertimePaid.setText(month.getPaidOvertimeString());
         txtOvertimeRest.setText(month.getRestOvertimeString());
         txtVacationDays.setText(month.getVacationDaysString());
         txtSickDays.setText(month.getSickDaysString());
+        txtOvertimePaid.setText(month.getPaidOvertimeString());
     }
 
     @Override

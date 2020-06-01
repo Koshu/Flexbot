@@ -70,6 +70,12 @@ public class YearFragment extends Fragment implements MonthListAdapter.OnMonthLi
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        updateDayGui();
+    }
+
+    @Override
     public void onActivityCreated (Bundle savedInstanceState){
         super.onActivityCreated(savedInstanceState);
 

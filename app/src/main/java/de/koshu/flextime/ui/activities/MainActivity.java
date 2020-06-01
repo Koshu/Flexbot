@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void updateDayGui(){
         Shift shift = appState.runningShift;
         Day today = appState.runningDay;
-        txtAllOvertime.setText(String.format("%.1fh",dataManager.getAllOvertime()));
+
         if(shift != null){
             txtStartTime.setText(shift.getStartTimeString());
             txtState.setText(shift.getStateString());
@@ -229,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if(today == null) {
             today = dataManager.getToday();
+            txtAllOvertime.setText(today.getMonthObject().getRestOvertimeString());
         }
 
         String work = today.getCumulatedNettoDurationString() + "/" + today.getRequiredWorkString();

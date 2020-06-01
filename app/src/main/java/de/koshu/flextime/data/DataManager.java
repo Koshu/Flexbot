@@ -158,13 +158,17 @@ public class DataManager {
     }
 
     public Month getMonth(int yearValue, int monthValue){
-        Year year = getYear(yearValue);
+        return getMonth(yearValue,monthValue,true);
+    }
+
+    public Month getMonth(int yearValue, int monthValue, boolean createIfMissing){
+        Year year = getYear(yearValue, createIfMissing);
 
         if(year == null) return null;
 
         Month month = year.getMonth(monthValue);
 
-        if(month == null){
+        if(createIfMissing && month == null){
             realm.beginTransaction();
             month = year.getOrAddMonth(monthValue);
             realm.commitTransaction();
@@ -358,34 +362,6 @@ public class DataManager {
 
     public AppState getAppState(){
         return state;
-    }
-
-
-
-    public float getAllOvertime(){
-        RealmResults<Day> days = getAllDaysSorted();
-
-        float overtime = 0.0f;
-
-        for(Day day : days){
-            overtime += day.getOvertime();
-        }
-
-        overtime += settings.startOvertime;
-
-        return overtime;
-    }
-
-    public float getOvertimeOfMonth(int month, int year){
-        RealmResults<Day> days = getDaysOfMonth(month, year);
-
-        float overtime = 0.0f;
-
-        for(Day day : days){
-            overtime += day.getOvertime();
-        }
-
-        return overtime;
     }
 
     public boolean importJSON(JSONObject json){

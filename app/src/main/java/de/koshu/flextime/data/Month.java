@@ -101,15 +101,38 @@ public class Month extends RealmObject {
     }
 
     public float getRestOvertime(){
-        return overtime - paidOvertime;
+        Month lastMonth = getMonthBefore();
+        if(lastMonth == null) {
+            return overtime - paidOvertime + DataManager.getManager().getSettings().startOvertime;
+        } else {
+            return overtime - paidOvertime + lastMonth.getRestOvertime();
+        }
     }
 
+    public Month getMonthBefore(){
+        int lastMonth = monthInt;
+        int lastYear = yearInt;
+
+        lastMonth--;
+
+        if(lastMonth == 0){
+            lastYear--;
+            lastMonth = 12;
+        }
+
+        return DataManager.getManager().getMonth(lastYear,lastMonth,false);
+    }
     public String getRestOvertimeString(){
         return LocalizationHelper.floatToHourString(getRestOvertime(),true);
     }
 
     public float getPaidOvertime(){
         return paidOvertime;
+    }
+
+    public void setPaidOvertime(float overtime) {
+        paidOvertime = overtime;
+        year.update();
     }
 
     public String getPaidOvertimeString(){
@@ -141,6 +164,7 @@ public class Month extends RealmObject {
 
         try {
             json.put("monthInt",monthInt);
+            json.put("paidOvertime",paidOvertime);
 
             JSONArray jsonArr = new JSONArray();
             for(Day d : days){
@@ -159,6 +183,7 @@ public class Month extends RealmObject {
     public void fromJSONV1(JSONObject json){
         try {
             monthInt = json.getInt("monthInt");
+            paidOvertime = (float) json.optDouble("paidOvertime");
 
             JSONArray arr = json.getJSONArray("days");
 
